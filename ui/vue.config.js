@@ -51,8 +51,7 @@ module.exports = {
             }
         },
         plugins: [
-            new MonacoWebpackPlugin({
-            }),
+            new MonacoWebpackPlugin(),
         ],
     },
     chainWebpack(config) {

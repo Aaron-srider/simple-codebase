@@ -1,8 +1,8 @@
-<!--  -->
 <template>
     <div class="">
         <el-button @click="changeLanguage('javascript')">js</el-button>
         <el-button @click="changeLanguage('java')">java</el-button>
+        <el-button @click="saveCode">save</el-button>
         <div id="editor" style="width: 500px; height: 500px"></div>
     </div>
 </template>
@@ -46,6 +46,13 @@ export default {
                 this.standaloneeditor.getModel(),
                 lang,
             )
+        },
+        saveCode() {
+            const code = this.standaloneeditor.getValue()
+            console.log(code)
+            debugger
+
+            // do something with the code
         },
     },
 }
