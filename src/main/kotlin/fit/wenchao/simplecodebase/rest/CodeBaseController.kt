@@ -52,14 +52,14 @@ class CodeBaseController {
 
     @PostMapping("/snippets")
     fun createSnippet(@RequestBody @Validated snippet: CreateSnippet ): JsonResult {
-        snippetsService.save(snippet)
+        snippetsService.create(snippet)
         return JsonResult.ok()
     }
 
 
     @PutMapping("/snippets/{id}")
     fun updateSnippet(@PathVariable id: Long, @RequestBody @Validated snippet: UpdateSnippet): JsonResult {
-      snippetsService.update(id, snippet)
+      snippetsService.save(id, snippet)
         return JsonResult.ok()
     }
 

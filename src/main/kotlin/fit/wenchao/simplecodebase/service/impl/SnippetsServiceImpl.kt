@@ -21,14 +21,14 @@ class SnippetsServiceImpl : SnippetsService {
         return snippetsDao.getById(id)
     }
 
-    override fun save(snippet: CreateSnippet) {
+    override fun create(snippet: CreateSnippet) {
         var saveSnippet = SnippetsPO()
         BeanUtils.copyProperties(snippet, saveSnippet)
         saveSnippet.createTime = DateTimeUtils.nowString()
         snippetsDao.save(saveSnippet)
     }
 
-    override fun update(id: Long, snippet: UpdateSnippet) {
+    override fun save(id: Long, snippet: UpdateSnippet) {
         val existingSnippet = findById(id)
         var snippetsPO = SnippetsPO()
         snippetsPO.codeContent = snippet.codeContent
@@ -45,10 +45,11 @@ class SnippetsServiceImpl : SnippetsService {
 
 
     override fun findAll(): MutableList<SnippetsPO> {
-        TODO("Not yet implemented")
+        val list = snippetsDao.list()
+        return list
     }
 
     override fun removeSnippetById(id: Long) {
-        TODO("Not yet implemented")
+        snippetsDao.removeById(id)
     }
 }

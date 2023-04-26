@@ -42,9 +42,22 @@ export const constantRoutes = [
         children: [
             {
                 path: '',
-                component: () => import('@/views/codebase/index.vue'),
+                component: () => import('@/views/codebase/list.vue'),
                 name: 'codebase',
                 meta: { title: 'codebase' }
+            },
+
+            {
+                path: 'create',
+                component: () => import('@/views/codebase/create.vue'),
+                name: 'create',
+                meta: { title: 'create' }
+            },
+            {
+                path: 'edit',
+                component: () => import('@/views/codebase/edit.vue'),
+                name: 'edit',
+                meta: { title: 'edit' }
             }
         ]
     },
@@ -87,6 +100,7 @@ export const constantRoutes = [
             }
         ]
     },
+
     {
         path: '/',
         component: Layout,

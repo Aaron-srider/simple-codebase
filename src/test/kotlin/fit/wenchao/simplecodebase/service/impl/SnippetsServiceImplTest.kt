@@ -16,6 +16,6 @@ class SnippetsServiceImplTest {
     fun save() {
         var snippet = CreateSnippet()
 
-        snippetsService.save(snippet)
+        snippetsService.create(snippet)
     }
 }
