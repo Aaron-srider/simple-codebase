@@ -9,6 +9,7 @@
 
 <script>
 import loader from '@monaco-editor/loader'
+import { createSnippet } from '@/api/snippets.js'
 export default {
     components: {},
     data() {
@@ -50,8 +51,16 @@ export default {
         saveCode() {
             const code = this.standaloneeditor.getValue()
             console.log(code)
-            debugger
-
+            createSnippet({
+                title: 'default title',
+                codeContent: code,
+                lang: this.language,
+            }).then((resp) => {
+                this.$notify({
+                    type: 'success',
+                    message: 'SUCCESS',
+                })
+            })
             // do something with the code
         },
     },
