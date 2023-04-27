@@ -1,6 +1,11 @@
 package fit.wenchao.simplecodebase.dao.po
 
 import fit.wenchao.simplecodebase.consts.RespCode
+import fit.wenchao.simplecodebase.dao.repo.base.BaseDao
+import fit.wenchao.simplecodebase.dao.repo.base.pagination.Condition
+import fit.wenchao.simplecodebase.dao.repo.base.pagination.PageConfig
+import fit.wenchao.simplecodebase.dao.repo.base.pagination.PageNo
+import fit.wenchao.simplecodebase.dao.repo.base.pagination.PageSize
 import fit.wenchao.simplecodebase.exception.BackendException
 import fit.wenchao.simplecodebase.model.JsonResult
 import fit.wenchao.simplecodebase.service.SnippetsService
@@ -27,6 +32,20 @@ class UpdateSnippet {
     var description: String? = null
 }
 
+@PageConfig
+class QuerySnippet{
+    @PageSize
+    var pageSize: Long? = null
+
+    @PageNo
+    var pageNo: Long? = null
+
+    @Condition(dbFieldName = "lang", con = BaseDao.ConditionEnum.EQ)
+    var lang: String? = null
+    @Condition(dbFieldName = "title", con = BaseDao.ConditionEnum.RIGHT_LIKE)
+    var title: String? = null
+}
+
 @Validated
 @RestController
 @RequestMapping("/API")
@@ -36,8 +55,13 @@ class CodeBaseController {
     lateinit var snippetsService: SnippetsService
 
     @GetMapping("/snippets")
-    fun getAllSnippets(): JsonResult {
-        return JsonResult.ok(snippetsService.findAll())
+    fun getAllSnippets(querySnippet: QuerySnippet): JsonResult {
+        val page = snippetsService.findAll(querySnippet)
+
+        return JsonResult.ok(object{
+            var records = page.records
+            var total =  page.total
+        })
     }
 
     @GetMapping("/snippets/{id}")

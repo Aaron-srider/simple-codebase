@@ -14,3 +14,9 @@ spring:
     initialization-mode: always
 server:
   port: 8089
+
+mybatis-plus:
+  global-config:
+    banner: false
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

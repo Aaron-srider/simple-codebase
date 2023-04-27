@@ -48,16 +48,11 @@ export const constantRoutes = [
             },
 
             {
-                path: 'create',
-                component: () => import('@/views/codebase/create.vue'),
-                name: 'create',
-                meta: { title: 'create' }
-            },
-            {
                 path: 'edit',
                 component: () => import('@/views/codebase/edit.vue'),
                 name: 'edit',
-                meta: { title: 'edit' }
+                meta: { title: 'edit', activeMenu: '/codebase' },
+                hidden: true
             }
         ]
     },

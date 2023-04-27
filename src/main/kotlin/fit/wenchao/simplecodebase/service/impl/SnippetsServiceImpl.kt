@@ -1,9 +1,12 @@
 package fit.wenchao.simplecodebase.service.impl
+
 import fit.wenchao.simplecodebase.consts.RespCode
 import fit.wenchao.simplecodebase.dao.po.CreateSnippet
+import fit.wenchao.simplecodebase.dao.po.QuerySnippet
 import fit.wenchao.simplecodebase.dao.po.SnippetsPO
 import fit.wenchao.simplecodebase.dao.po.UpdateSnippet
 import fit.wenchao.simplecodebase.dao.repo.SnippetsDao
+import fit.wenchao.simplecodebase.dao.repo.base.pagination.Page
 import fit.wenchao.simplecodebase.exception.BackendException
 import fit.wenchao.simplecodebase.service.SnippetsService
 import fit.wenchao.simplecodebase.utils.DateTimeUtils
@@ -44,9 +47,9 @@ class SnippetsServiceImpl : SnippetsService {
     }
 
 
-    override fun findAll(): MutableList<SnippetsPO> {
-        val list = snippetsDao.list()
-        return list
+    override fun findAll(querySnippet: QuerySnippet): Page<SnippetsPO> {
+
+        return       snippetsDao.pageData(querySnippet, null)
     }
 
     override fun removeSnippetById(id: Long) {

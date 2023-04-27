@@ -1,37 +1,54 @@
 <template>
     <div class="">
-        <el-button @click="changeLanguage('javascript')">js</el-button>
-        <el-button @click="changeLanguage('java')">java</el-button>
-        <el-button @click="saveCode">save</el-button>
-        <div id="editor" style="width: 500px; height: 500px"></div>
+        <div>
+            <el-input v-model="title"></el-input>
+            <el-button @click="changeLanguage('javascript')">js</el-button>
+            <el-button @click="changeLanguage('java')">java</el-button>
+            <el-button @click="saveCode">save</el-button>
+        </div>
+        <div class="flex">
+            <div id="editor" style="width: 500px; height: 500px"></div>
+            <div class="flexg1">
+                <Tinymce ref="editor" v-model="description" :height="400" />
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
+import Tinymce from '@/components/Tinymce'
 import loader from '@monaco-editor/loader'
-import { getSnippetById, updateSnippet } from '@/api/snippets.js'
+import { createSnippet, getSnippetById, updateSnippet } from '@/api/snippets.js'
 export default {
-    components: {},
+    components: { Tinymce },
     data() {
         return {
+            title: '',
             language: 'javascript',
             monacoeditor: undefined,
+            mode: this.$route.query.mode,
+            description: '',
         }
     },
     computed: {},
     watch: {},
     async created() {
         this.init()
-        var snippetId = this.$route.query.snippetId
-        if (snippetId == undefined) {
-            throw Error('page init error')
-        }
+        if (this.mode == 'edit') {
+            var snippetId = this.$route.query.snippetId
+            if (snippetId == undefined) {
+                throw Error('page init error')
+            }
 
-        this.snippetId = snippetId
-        getSnippetById(snippetId).then((resp) => {
-            this.standaloneeditor.setValue(resp.data.codeContent)
-            this.changeLanguage(resp.data.lang)
-        })
+            this.snippetId = snippetId
+            getSnippetById(snippetId).then((resp) => {
+                this.id = resp.data.id
+                this.title = resp.data.title
+                this.standaloneeditor.setValue(resp.data.codeContent)
+                this.language = resp.data.lang
+                this.changeLanguage(resp.data.lang)
+            })
+        }
     },
 
     methods: {
@@ -53,6 +70,7 @@ export default {
             })
         },
         changeLanguage(lang) {
+            this.language = lang
             this.monacoeditor.setModelLanguage(
                 this.standaloneeditor.getModel(),
                 lang,
@@ -60,19 +78,42 @@ export default {
         },
         saveCode() {
             const code = this.standaloneeditor.getValue()
-            updateSnippet(this.snippetId, {
-                title: 'default title',
-                codeContent: code,
-                lang: this.language,
-            }).then((resp) => {
+
+            if (this.title === '') {
                 this.$notify({
-                    type: 'success',
-                    message: 'SUCCESS',
+                    type: 'error',
+                    message: 'title is empty',
                 })
-            })
-            // do something with the code
+                return
+            }
+
+            if (this.mode == 'create') {
+                createSnippet({
+                    title: this.title,
+                    codeContent: code,
+                    lang: this.language,
+                }).then((resp) => {
+                    this.$notify({
+                        type: 'success',
+                        message: 'SUCCESS',
+                    })
+                })
+            } else if (this.mode == 'edit') {
+                updateSnippet(this.id, {
+                    title: this.title,
+                    codeContent: code,
+                    lang: this.language,
+                }).then((resp) => {
+                    this.$notify({
+                        type: 'success',
+                        message: 'SUCCESS',
+                    })
+                })
+            }
         },
     },
 }
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+@import '~@/styles/common-style.scss';
+</style>

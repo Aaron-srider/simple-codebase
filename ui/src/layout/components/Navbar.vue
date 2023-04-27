@@ -38,14 +38,14 @@
                 class="avatar-container right-menu-item hover-effect"
                 trigger="click"
             >
-                <!-- <div class="avatar-wrapper">
+                <div class="avatar-wrapper">
                     <img
                         :src="avatar + '?imageView2/1/w/80/h/80'"
                         class="user-avatar"
                     />
                     <i class="el-icon-caret-bottom" />
                 </div> -->
-                <!-- <el-dropdown-menu slot="dropdown">
+                <el-dropdown-menu slot="dropdown">
                     <router-link to="/profile/index">
                         <el-dropdown-item>Profile</el-dropdown-item>
                     </router-link>
@@ -67,7 +67,7 @@
                     <el-dropdown-item divided @click.native="logout">
                         <span style="display: block">Log Out</span>
                     </el-dropdown-item>
-                </el-dropdown-menu> -->
+                </el-dropdown-menu>
             </el-dropdown>
         </div>
     </div>

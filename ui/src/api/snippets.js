@@ -1,9 +1,10 @@
 import request from '@/utils/request'
 
-export function getAllSnippets() {
+export function getAllSnippets(params) {
     return request({
         url: '/snippets',
-        method: 'get'
+        method: 'get',
+        params
     })
 }
 
