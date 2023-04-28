@@ -6,6 +6,8 @@ datasource-db: simple-codebase
 
 
 spring:
+  main:
+    banner-mode: off
   datasource:
     url: jdbc:mysql://${datasource-host}:${datasource-port}/${datasource-db}?useUnicode=true&characterEncoding=UTF-8&useSSL=false
     username: ${datasource-username}

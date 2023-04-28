@@ -5,9 +5,21 @@
             <el-button @click="changeLanguage('javascript')">js</el-button>
             <el-button @click="changeLanguage('java')">java</el-button>
             <el-button @click="saveCode">save</el-button>
+            <el-button @click="runCode">run</el-button>
         </div>
         <div class="flex">
-            <div id="editor" style="width: 500px; height: 500px"></div>
+            <div>
+                <div id="editor" style="width: 500px; height: 500px"></div>
+                <div>
+                    <el-input
+                        type="textarea"
+                        :rows="10"
+                        placeholder="output"
+                        v-model="onlineCodeRunningOutput"
+                    ></el-input>
+                </div>
+            </div>
+
             <div class="flexg1">
                 <Tinymce ref="editor" v-model="description" :height="400" />
             </div>
@@ -28,6 +40,7 @@ export default {
             monacoeditor: undefined,
             mode: this.$route.query.mode,
             description: '',
+            onlineCodeRunningOutput: '',
         }
     },
     computed: {},
@@ -46,12 +59,14 @@ export default {
                 this.title = resp.data.title
                 this.standaloneeditor.setValue(resp.data.codeContent)
                 this.language = resp.data.lang
+                this.description = resp.data.description
                 this.changeLanguage(resp.data.lang)
             })
         }
     },
 
     methods: {
+        runCode() {},
         async init() {
             loader.init().then((monaco) => {
                 const editorOptions = {
@@ -92,6 +107,7 @@ export default {
                     title: this.title,
                     codeContent: code,
                     lang: this.language,
+                    description: this.description,
                 }).then((resp) => {
                     this.$notify({
                         type: 'success',
@@ -103,6 +119,7 @@ export default {
                     title: this.title,
                     codeContent: code,
                     lang: this.language,
+                    description: this.description,
                 }).then((resp) => {
                     this.$notify({
                         type: 'success',
