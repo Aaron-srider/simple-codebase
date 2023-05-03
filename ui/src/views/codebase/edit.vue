@@ -1,9 +1,28 @@
 <template>
     <div class="">
+        <div class="flex mgb20 mgt20">
+            <div class="flex flex-center">
+                <a
+                    href="#"
+                    onclick="history.back(); return false;"
+                    style="font-size: 16px"
+                >
+                    <i class="el-icon-back"></i>
+
+                    Back To Snippets List
+                </a>
+            </div>
+        </div>
+
         <div>
             <el-input v-model="title"></el-input>
-            <el-button @click="changeLanguage('javascript')">js</el-button>
-            <el-button @click="changeLanguage('java')">java</el-button>
+            <el-select v-model="language" @change="handleOptionChange">
+                <el-option value="java" label="java"></el-option>
+                <el-option value="kotlin" label="kotlin"></el-option>
+                <el-option value="javascript" label="javascript"></el-option>
+                <el-option value="cpp" label="c/cpp"></el-option>
+                <el-option value="html" label="html"></el-option>
+            </el-select>
             <el-button @click="saveCode">save</el-button>
             <el-button @click="runCode">run</el-button>
         </div>
@@ -33,10 +52,21 @@ import loader from '@monaco-editor/loader'
 import { createSnippet, getSnippetById, updateSnippet } from '@/api/snippets.js'
 export default {
     components: { Tinymce },
+    beforeRouteLeave(to, from, next) {
+        document.removeEventListener('keydown', this.handleKeyDown)
+        next()
+    },
+    beforeRouteEnter(to, from, next) {
+        next((vm) => {
+            vm.$nextTick(() => {
+                document.addEventListener('keydown', vm.handleKeyDown)
+            })
+        })
+    },
     data() {
         return {
             title: '',
-            language: 'javascript',
+            language: 'java',
             monacoeditor: undefined,
             mode: this.$route.query.mode,
             description: '',
@@ -47,42 +77,58 @@ export default {
     watch: {},
     async created() {
         this.init()
-        if (this.mode == 'edit') {
-            var snippetId = this.$route.query.snippetId
-            if (snippetId == undefined) {
-                throw Error('page init error')
-            }
-
-            this.snippetId = snippetId
-            getSnippetById(snippetId).then((resp) => {
-                this.id = resp.data.id
-                this.title = resp.data.title
-                this.standaloneeditor.setValue(resp.data.codeContent)
-                this.language = resp.data.lang
-                this.description = resp.data.description
-                this.changeLanguage(resp.data.lang)
-            })
-        }
     },
 
     methods: {
+        handleKeyDown(event) {
+            // Check if the "Ctrl" key and "S" key were both pressed
+            if (event.ctrlKey && event.key === 's') {
+                event.preventDefault()
+                console.log('Ctrl + S pressed!')
+                this.saveCode()
+                // Do something else here, such as saving data or triggering an action
+            }
+        },
+        handleOptionChange() {
+            this.changeLanguage(this.language)
+        },
         runCode() {},
-        async init() {
-            loader.init().then((monaco) => {
-                const editorOptions = {
-                    language: 'java',
-                    minimap: { enabled: true },
-                }
-                var monacoeditor = monaco.editor
-                var standaloneeditor = monacoeditor.create(
-                    document.getElementById('editor'),
-                    editorOptions,
-                )
+        init() {
+            loader
+                .init()
+                .then((monaco) => {
+                    const editorOptions = {
+                        language: 'java',
+                        minimap: { enabled: true },
+                    }
+                    var monacoeditor = monaco.editor
+                    var standaloneeditor = monacoeditor.create(
+                        document.getElementById('editor'),
+                        editorOptions,
+                    )
 
-                this.standaloneeditor = standaloneeditor
+                    this.standaloneeditor = standaloneeditor
 
-                this.monacoeditor = monacoeditor
-            })
+                    this.monacoeditor = monacoeditor
+
+                    if (this.mode == 'edit') {
+                        var snippetId = this.$route.query.snippetId
+                        if (snippetId == undefined) {
+                            throw Error('page init error')
+                        }
+
+                        this.snippetId = snippetId
+                        return getSnippetById(snippetId)
+                    }
+                })
+                .then((resp) => {
+                    this.id = resp.data.id
+                    this.title = resp.data.title
+                    this.standaloneeditor.setValue(resp.data.codeContent)
+                    this.language = resp.data.lang
+                    this.description = resp.data.description
+                    this.changeLanguage(resp.data.lang)
+                })
         },
         changeLanguage(lang) {
             this.language = lang
