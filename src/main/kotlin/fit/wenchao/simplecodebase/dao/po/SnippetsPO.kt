@@ -13,7 +13,8 @@ data class SnippetsPO(
     var lang: String?,
     var title: String?,
     var createTime: String?,
-    var description: String?
+    var description: String?,
+    var articleId: Int ?,
 ) : Serializable {
-    constructor() : this(null, null, null, null, null, null)
+    constructor() : this(null, null, null, null, null, null, null)
 }
