@@ -1,6 +1,6 @@
 package fit.wenchao.simplecodebase.service.impl
 
-import fit.wenchao.simplecodebase.consts.RespCode
+import fit.wenchao.simplecodebase.exception.RespCode
 import fit.wenchao.simplecodebase.dao.po.CreateSnippet
 import fit.wenchao.simplecodebase.dao.po.QuerySnippet
 import fit.wenchao.simplecodebase.dao.po.SnippetsPO

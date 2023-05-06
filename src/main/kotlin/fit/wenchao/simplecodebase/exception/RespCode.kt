@@ -1,7 +1,8 @@
-package fit.wenchao.simplecodebase.consts;
+package fit.wenchao.simplecodebase.exception;
+
+import fit.wenchao.simplecodebase.model.JsonResult
 
 enum class RespCode(var msg: String) {
-
 
     SUCCESS("success"),
     FRONT_END_PARAMS_ERROR("front end params error"),
@@ -10,8 +11,9 @@ enum class RespCode(var msg: String) {
     UPLOAD_FILE_MISSING("upload file missing"),
     OTHER_ERROR("other error"),
     NO_SNIPPET("no snippet"),
-
     ;
+}
 
-
+fun JsonResult.Companion.of(data: Any?, respCode: RespCode): JsonResult {
+    return JsonResult(data, respCode.name, respCode.msg)
 }

@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `snippets`  (
      `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
      `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
      `create_time` varchar(19) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-    `article_id` int(11) NOT NULL,
+    `article_id` int(11) NULL,
      PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 

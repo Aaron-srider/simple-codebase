@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import fit.wenchao.simplecodebase.consts.RespCode;
+import fit.wenchao.simplecodebase.exception.RespCode;
 import fit.wenchao.simplecodebase.dao.repo.base.pagination.*;
 import fit.wenchao.simplecodebase.exception.BackendException;
 import fit.wenchao.simplecodebase.utils.VarCaseConvertUtils;

@@ -1,9 +1,9 @@
 package fit.wenchao.simplecodebase.exception
+
 import com.alibaba.fastjson.JSONObject
-import fit.wenchao.simplecodebase.consts.RespCode
 import fit.wenchao.simplecodebase.model.JsonResult
 import fit.wenchao.simplecodebase.utils.ClassUtils
-import fit.wenchao.simplecodebase.utils.Log
+import mu.KotlinLogging
 import org.apache.commons.lang3.exception.ExceptionUtils
 import org.apache.tomcat.util.http.fileupload.FileUploadBase
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -20,24 +20,44 @@ import org.springframework.web.multipart.MultipartException
 import javax.servlet.http.HttpServletResponse
 import javax.validation.ConstraintViolationException
 
+class BackendException : RuntimeException {
+    val data: Any?
+    val code: String?
+    val msg: String?
+
+    constructor(data: Any?, code: String, msg: String) : super(code) {
+        this.data = data
+        this.code = code
+        this.msg = msg
+    }
+
+    constructor(data: Any?, respCode: RespCode) : super(respCode.msg) {
+        this.data = data
+        this.code = respCode.name
+        this.msg = respCode.msg
+    }
+
+}
+
 @ControllerAdvice
-class GlobalExceptionHandler: Log() {
+class GlobalExceptionHandler {
+
+    private val log = KotlinLogging.logger {}
 
     @ExceptionHandler(BackendException::class)
     @ResponseBody
     fun errorCodeException(req: HttpServletResponse, ex: BackendException): JsonResult {
+        var msg = ex.msg
+
         val jsonResult = JsonResult()
         jsonResult.data = ex.data
         jsonResult.code = ex.code
-        var msg = ex.msg
-        //if (ex.cause != null) {
-        //    msg = buildErrorMsg(ex.cause)
-        //}
         jsonResult.msg = msg
         log.error("[{}] {}", ex.code, msg)
         return jsonResult
     }
 
+    //  handle object validations
     @ExceptionHandler(BindException::class, MethodArgumentNotValidException::class)
     @ResponseBody
     fun paramValidateException(ex: Exception): JsonResult {
@@ -45,15 +65,19 @@ class GlobalExceptionHandler: Log() {
         try {
             bindingResult = ClassUtils.getFieldValue(ex, "bindingResult", BindingResult::class.java)
         } catch (e: NoSuchFieldException) {
-            log.error("获取参数校验信息失败")
             return JsonResult.of(null, RespCode.FRONT_END_PARAMS_ERROR)
         }
         val parameterCheckResult = bindingResultPackager(bindingResult)
-        val jsonResult = JsonResult.of(parameterCheckResult, RespCode.FRONT_END_PARAMS_ERROR)
+        val jsonResult = JsonResult.of(
+            parameterCheckResult,
+            RespCode.FRONT_END_PARAMS_ERROR.name,
+            RespCode.FRONT_END_PARAMS_ERROR.msg
+        )
         log.error("Error:{}", jsonResult)
         return jsonResult
     }
 
+    // handle primitive validations
     @ExceptionHandler(ConstraintViolationException::class)
     @ResponseBody
     fun constraintViolationException(ex: ConstraintViolationException): JsonResult {
@@ -66,7 +90,11 @@ class GlobalExceptionHandler: Log() {
             )
         }
 
-        return JsonResult.of(parameterCheckResult, RespCode.FRONT_END_PARAMS_ERROR)
+        return JsonResult.of(
+            parameterCheckResult,
+            RespCode.FRONT_END_PARAMS_ERROR.name,
+            RespCode.FRONT_END_PARAMS_ERROR.msg
+        )
     }
 
     private fun getLastPathNode(path: javax.validation.Path): String {
@@ -84,13 +112,13 @@ class GlobalExceptionHandler: Log() {
         val parameterCheckResult = ParameterCheckResult()
         for (objectError in bindingResult.allErrors) {
             val fieldError = objectError as FieldError
-            parameterCheckResult.putResult(fieldError.field, fieldError.defaultMessage?: "")
+            parameterCheckResult.putResult(fieldError.field, fieldError.defaultMessage ?: "")
         }
         return parameterCheckResult
     }
 
     /**
-     * 统一处理其他后端异常
+     * handle other exceptions
      */
     @ExceptionHandler(Exception::class)
     @ResponseBody
@@ -110,7 +138,6 @@ class GlobalExceptionHandler: Log() {
                 return errorCodeException(req, BackendException(null, RespCode.UPLOAD_FILE_MISSING))
             }
         }
-        ex.printStackTrace()
         val jsonResult = JsonResult()
         jsonResult.data = null
         jsonResult.code = RespCode.OTHER_ERROR.name
@@ -123,7 +150,8 @@ class GlobalExceptionHandler: Log() {
 
 
 class ParameterCheckResult {
-     private var paramCheckMap = JSONObject()
+
+    private var paramCheckMap = JSONObject()
 
     fun putResult(field: String, message: String) {
         paramCheckMap[field] = message
