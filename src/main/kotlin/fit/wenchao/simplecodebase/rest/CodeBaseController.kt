@@ -45,7 +45,7 @@ class QuerySnippet {
     @Condition(dbFieldName = "lang", con = BaseDao.ConditionEnum.EQ)
     var lang: String? = null
 
-    @Condition(dbFieldName = "title", con = BaseDao.ConditionEnum.RIGHT_LIKE)
+    @Condition(dbFieldName = "title", con = BaseDao.ConditionEnum.LIKE)
     var title: String? = null
 }
 
