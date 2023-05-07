@@ -1,10 +1,9 @@
 package fit.wenchao.simplecodebase.service.impl
 
-import fit.wenchao.simplecodebase.dao.po.CreateSnippetRequest
-import fit.wenchao.simplecodebase.dao.po.InsertSnippetResponse
-import fit.wenchao.simplecodebase.dao.po.SnippetVO
-import fit.wenchao.simplecodebase.dao.po.SnippetsPO
+import fit.wenchao.simplecodebase.dao.po.*
 import fit.wenchao.simplecodebase.dao.repo.SnippetsDao
+import fit.wenchao.simplecodebase.exception.BackendException
+import fit.wenchao.simplecodebase.exception.RespCode
 import fit.wenchao.simplecodebase.service.SnippetsService
 import fit.wenchao.simplecodebase.utils.DateTimeUtils
 import mu.KotlinLogging
@@ -21,14 +20,14 @@ class SnippetsServiceImpl : SnippetsService {
     lateinit var snippetsDao: SnippetsDao
 
     override fun listSnippetsForArticle(articleId: Long): List<SnippetVO> {
-        val snippets = snippetsDao.listByMap("article_id",articleId)
+        val snippets = snippetsDao.listByMap("article_id", articleId)
         return snippets.map { snippet -> snippet.toVO() }
     }
 
     @Transactional
-    override fun createSnippet(articleId: Long, createSnippetRequest: CreateSnippetRequest):InsertSnippetResponse {
+    override fun createSnippet(articleId: Long, createSnippetRequest: CreateSnippetRequest): InsertSnippetResponse {
         // update order of the rest snippets after the new snippet of article
-        var snippets = snippetsDao.listByMap("article_id",articleId)
+        var snippets = snippetsDao.listByMap("article_id", articleId)
 
         // update order of the rest snippets after the new snippet of article
         snippets.forEach {
@@ -56,10 +55,7 @@ class SnippetsServiceImpl : SnippetsService {
         snippetsDao.save(snippetPO)
         logger.info { "save snippet success, snippet id: ${snippetPO.id}" }
 
-        // find out a map containing the snippetId and the order
-        snippets = snippetsDao.listByMap("article_id",articleId)
-
-        val snippetIdAndOrderMap = snippets.map { it.id!! to it.order!! }.toMap()
+        val snippetIdAndOrderMap= getOrderMapOfSnippetsByArticleId(articleId =  articleId)
 
         return InsertSnippetResponse(
             newSnippetHandle = snippetPO.id,
@@ -67,8 +63,36 @@ class SnippetsServiceImpl : SnippetsService {
         )
     }
 
+    @Transactional
+    override fun deleteSnippet(snippetId: Long): DeleteSnippetResponse {
+
+        // get the article id of the snippet
+        val snippet = snippetsDao.getById(snippetId)
+        snippet?:throw BackendException(null, RespCode.SNIPPET_NOT_FOUND)
+
+        val articleId = snippet.articleId
+
+        // remove snippet by id simply
+        snippetsDao.removeById(snippetId)
+
+        val snippetIdAndOrderMap= getOrderMapOfSnippetsByArticleId(articleId!!)
+
+        return DeleteSnippetResponse(
+            deletedSnippetHandle = snippetId,
+            orderMap = snippetIdAndOrderMap
+        )
+    }
+
+    private fun getOrderMapOfSnippetsByArticleId(articleId: Long): Map<Long, Int> {
+        // find out a map containing the snippetId and the order
+        val snippets = snippetsDao.listByMap("article_id", articleId)
+
+        val snippetIdAndOrderMap = snippets.map { it.id!! to it.order!! }.toMap()
+        return snippetIdAndOrderMap
+    }
+
     // Extension function to convert a Snippet entity to a SnippetVO
-     fun SnippetsPO.toVO(): SnippetVO {
+    fun SnippetsPO.toVO(): SnippetVO {
         return SnippetVO(
             id = this.id,
             content = this.codeContent,
@@ -79,3 +103,5 @@ class SnippetsServiceImpl : SnippetsService {
     }
 
 }
+
+

@@ -159,10 +159,16 @@ class CodeBaseController {
 
     @PostMapping("/article/{articleId}/snippet")
     fun createSnippet(@PathVariable articleId: Long, @RequestBody createSnippetRequest: CreateSnippetRequest): Any {
-        var newSnippetHandle = snippetsService.createSnippet(articleId, createSnippetRequest)
-        return newSnippetHandle
+        var insertSnippetResponse = snippetsService.createSnippet(articleId, createSnippetRequest)
+        return insertSnippetResponse
     }
 
+
+    @DeleteMapping("/article/snippet/{snippetId}")
+    fun deleteSnippet(@PathVariable snippetId: Long): Any {
+        var deleteSnippetResponse = snippetsService.deleteSnippet(snippetId)
+        return deleteSnippetResponse
+    }
 }
 
 
@@ -173,3 +179,11 @@ data class InsertSnippetResponse(
     constructor() : this(null, null)
 }
 
+
+
+data class DeleteSnippetResponse(
+    var deletedSnippetHandle: Long? = null,
+    var orderMap: Map<Long, Int>? = null
+){
+    constructor() : this(null, null)
+}

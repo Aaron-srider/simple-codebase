@@ -118,6 +118,7 @@ import Tinymce from '@/components/Tinymce'
 import loader from '@monaco-editor/loader'
 import {
     createSnippet,
+    deleteSnippet,
     listSnippetsForArticle,
     updateArticle,
 } from '@/api/article'
@@ -154,10 +155,61 @@ export default {
     },
 
     methods: {
+        // remove the snippet seletedSnippetId points to
+        removeSnippet() {
+            // check if there is still snippt
+            if (this.snippets.length == 0) {
+                return
+            }
+
+            var snippetId = this.selectedSnippetId
+
+            // find out the index of selected snippet in the array
+            var originalPlace = this.snippets.findIndex(
+                (snippet) => snippet.id == snippetId,
+            )
+
+            var isLast = false
+
+            // determine if this snippet is the last
+            if (this.snippets.length > 0) {
+                var lastSnippet = this.snippets[this.snippets.length - 1]
+                if (lastSnippet.id == snippetId) {
+                    isLast = true
+                }
+            }
+
+            deleteSnippet(snippetId).then((res) => {
+                // remove the snippet from the snippets array
+                this.snippets = this.snippets.filter(
+                    (snippet) => snippet.id != snippetId,
+                )
+
+                var orderMap = res.data.orderMap
+                // reassign the order of the snippets according to the orderMap returned from the backend
+                this.snippets.forEach((snippet) => {
+                    snippet.order = orderMap[snippet.id]
+                })
+
+                // focus the same place if we just removed the last one snippet
+                if (isLast) {
+                    // focus on the last one
+                    this.focusSnippetBySnippetId(
+                        this.snippets[this.snippets.length - 1].id,
+                    )
+                } else {
+                    // focus the next snippet if we just removed the snippet that is not the last one
+                    this.focusSnippetBySnippetId(
+                        this.snippets[originalPlace].id,
+                    )
+                }
+            })
+        },
         getAllSnippetElement() {
             // get all elements whose id starts with "snippet"
-            const snippetElements =
-                document.querySelectorAll(this.snippetDivSelector())
+            const snippetElements = document.querySelectorAll(
+                this.snippetDivSelector(),
+            )
             return snippetElements
         },
         getSippetIdFromDivId(divId) {
@@ -183,7 +235,9 @@ export default {
 
         focusSnippetBySnippetId(selectedSnippetId) {
             // get snippet element by id
-            var target = document.getElementById(this.formAnIdForSnippetDiv({ id: selectedSnippetId }))
+            var target = document.getElementById(
+                this.formAnIdForSnippetDiv({ id: selectedSnippetId }),
+            )
             this.doFocusSnippet(target, selectedSnippetId)
         },
 
@@ -220,16 +274,14 @@ export default {
                 }
             })
 
-            if (selectedOrder == -1) {
-                throw new Error()
-            }
-            debugger
+            // we are going to create the first one snippet
+            var newOrder = selectedOrder < 0 ? 0 : selectedOrder + 1
 
             createSnippet(this.articleId, {
                 content: '',
                 description: '',
                 lang: 'kotlin',
-                order: selectedOrder + 1,
+                order: newOrder,
             }).then((resp) => {
                 var newSnippetHandle = resp.data.newSnippetHandle
                 var orderMap = resp.data.orderMap
@@ -240,7 +292,7 @@ export default {
                     content: '',
                     description: '',
                     lang: 'kotlin',
-                    order: selectedOrder + 1,
+                    order: newOrder,
                 })
 
                 // update the order of all snippets by snippet id according to orderMap

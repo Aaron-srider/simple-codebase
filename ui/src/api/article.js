@@ -45,3 +45,10 @@ export function createSnippet(articleId, createArticleRequest) {
         data: createArticleRequest,
     })
 }
+
+export function deleteSnippet(snippetId) {
+    return request({
+        url: `/article/snippet/${snippetId}`,
+        method: 'delete',
+    })
+}
