@@ -14,19 +14,86 @@
             </div>
         </div>
 
-        <div>
-            <el-input v-model="title"></el-input>
-            <el-select v-model="language" @change="handleOptionChange">
-                <el-option value="java" label="java"></el-option>
-                <el-option value="kotlin" label="kotlin"></el-option>
-                <el-option value="javascript" label="javascript"></el-option>
-                <el-option value="cpp" label="c/cpp"></el-option>
-                <el-option value="html" label="html"></el-option>
-            </el-select>
-            <el-button @click="saveCode">save</el-button>
-            <el-button @click="runCode">run</el-button>
+        <!-- top edit bar -->
+        <div class="mgb20">
+            <div class="flex">
+                <el-input v-model="title" style="width: 30%"></el-input>
+            </div>
+            <!-- edit snippet bar -->
+            <div>
+                <el-button @click="saveCode">save</el-button>
+                <el-button @click="addNewSnippet">+</el-button>
+                <el-button @click="removeSnippet">-</el-button>
+                <el-button>up</el-button>
+                <el-button>down</el-button>
+            </div>
         </div>
-        <div class="flex">
+        <div>{{ selectedSnippetId }}</div>
+        <!-- snippets -->
+        <div>
+            <!-- rows -->
+            <div
+                :id="formAnIdForSnippetDiv(snippet)"
+                @click="focusSnippet($event)"
+                style="border: 1px solid"
+                v-for="snippet in snippets"
+                :key="snippet.id"
+                class="flex mgb20"
+            >
+                <div class="mgr20">id: {{ snippet.id }}</div>
+
+                <div>order: {{ snippet.order }}</div>
+                <!-- code -->
+                <div>
+                    <!-- code edit bar -->
+
+                    <div class="mgr20">
+                        <div>
+                            <el-select
+                                v-model="language"
+                                @change="handleOptionChange"
+                            >
+                                <el-option
+                                    value="java"
+                                    label="java"
+                                ></el-option>
+                                <el-option
+                                    value="kotlin"
+                                    label="kotlin"
+                                ></el-option>
+                                <el-option
+                                    value="javascript"
+                                    label="javascript"
+                                ></el-option>
+                                <el-option
+                                    value="cpp"
+                                    label="c/cpp"
+                                ></el-option>
+                                <el-option
+                                    value="html"
+                                    label="html"
+                                ></el-option>
+                            </el-select>
+
+                            <el-button @click="runCode">run</el-button>
+                        </div>
+                        <el-input
+                            type="textarea"
+                            v-model="snippet.content"
+                        ></el-input>
+                    </div>
+                </div>
+
+                <!-- desc -->
+                <div>
+                    <el-input
+                        type="textarea"
+                        v-model="snippet.description"
+                    ></el-input>
+                </div>
+            </div>
+        </div>
+        <!-- <div class="flex">
             <div>
                 <div id="editor" style="width: 500px; height: 500px"></div>
                 <div>
@@ -42,14 +109,18 @@
             <div class="flexg1">
                 <Tinymce ref="editor" v-model="description" :height="400" />
             </div>
-        </div>
+        </div> -->
     </div>
 </template>
 
 <script>
 import Tinymce from '@/components/Tinymce'
 import loader from '@monaco-editor/loader'
-import { createSnippet, getSnippetById, updateSnippet } from '@/api/snippets.js'
+import {
+    createSnippet,
+    listSnippetsForArticle,
+    updateArticle,
+} from '@/api/article'
 export default {
     components: { Tinymce },
     beforeRouteLeave(to, from, next) {
@@ -65,12 +136,15 @@ export default {
     },
     data() {
         return {
+            articleId: this.$route.query.articleId,
             title: '',
             language: 'java',
             monacoeditor: undefined,
             mode: this.$route.query.mode,
             description: '',
             onlineCodeRunningOutput: '',
+            snippets: [],
+            selectedSnippetId: -1,
         }
     },
     computed: {},
@@ -80,6 +154,111 @@ export default {
     },
 
     methods: {
+        getAllSnippetElement() {
+            // get all elements whose id starts with "snippet"
+            const snippetElements =
+                document.querySelectorAll(this.snippetDivSelector())
+            return snippetElements
+        },
+        getSippetIdFromDivId(divId) {
+            return divId.substring(
+                divId.indexOf('snippet-') + 'snippet-'.length,
+            )
+        },
+        formAnIdForSnippetDiv(snippet) {
+            return `snippet-${snippet.id}`
+        },
+        snippetDivSelector(snippet) {
+            return '[id^="snippet-"]'
+        },
+        focusSnippet(e) {
+            // get snippet id from element, use closest to ensure if you click the nested elements like input or something, you can still get
+            // the "snippet-" prefixed div correctly
+            var target = e.target.closest(this.snippetDivSelector())
+
+            var selectedSnippetId = this.getSippetIdFromDivId(target.id)
+
+            this.doFocusSnippet(target, selectedSnippetId)
+        },
+
+        focusSnippetBySnippetId(selectedSnippetId) {
+            // get snippet element by id
+            var target = document.getElementById(this.formAnIdForSnippetDiv({ id: selectedSnippetId }))
+            this.doFocusSnippet(target, selectedSnippetId)
+        },
+
+        doFocusSnippet(target, selectedSnippetId) {
+            // highlight it
+            target.classList.add('snippet-highlight')
+
+            this.selectedSnippetId = selectedSnippetId
+
+            // remove highlight from the rest snippet
+            this.reverseHighLightSnippet(selectedSnippetId)
+        },
+
+        reverseHighLightSnippet(selectedSnippetId) {
+            // remove highlight from the rest snippet
+            var snippetElements = this.getAllSnippetElement()
+            snippetElements.forEach((element) => {
+                // get the part of the ID that follows "snippet"
+                const snippetId = this.getSippetIdFromDivId(element.id)
+                if (snippetId != selectedSnippetId) {
+                    console.log(snippetId) // output: "123"
+                    element.classList.remove('snippet-highlight')
+                }
+            })
+        },
+
+        addNewSnippet() {
+            // find order of current focused snippet
+            var snippets = this.snippets
+            var selectedOrder = -1
+            snippets.forEach((snippet) => {
+                if (snippet.id == this.selectedSnippetId) {
+                    selectedOrder = snippet.order
+                }
+            })
+
+            if (selectedOrder == -1) {
+                throw new Error()
+            }
+            debugger
+
+            createSnippet(this.articleId, {
+                content: '',
+                description: '',
+                lang: 'kotlin',
+                order: selectedOrder + 1,
+            }).then((resp) => {
+                var newSnippetHandle = resp.data.newSnippetHandle
+                var orderMap = resp.data.orderMap
+
+                // add new snippet to snippets anyway
+                this.snippets.push({
+                    id: newSnippetHandle,
+                    content: '',
+                    description: '',
+                    lang: 'kotlin',
+                    order: selectedOrder + 1,
+                })
+
+                // update the order of all snippets by snippet id according to orderMap
+                for (let i = 0; i < snippets.length; i++) {
+                    snippets[i].order = orderMap[snippets[i].id]
+                }
+
+                // sort snippets by order
+                snippets.sort((a, b) => {
+                    return a.order - b.order
+                })
+
+                // focus on the new snippet
+                this.$nextTick(function () {
+                    this.focusSnippetBySnippetId(newSnippetHandle)
+                })
+            })
+        },
         handleKeyDown(event) {
             // Check if the "Ctrl" key and "S" key were both pressed
             if (event.ctrlKey && event.key === 's') {
@@ -94,41 +273,52 @@ export default {
         },
         runCode() {},
         init() {
-            loader
-                .init()
-                .then((monaco) => {
-                    const editorOptions = {
-                        language: 'java',
-                        minimap: { enabled: true },
-                    }
-                    var monacoeditor = monaco.editor
-                    var standaloneeditor = monacoeditor.create(
-                        document.getElementById('editor'),
-                        editorOptions,
-                    )
+            listSnippetsForArticle(this.articleId).then((resp) => {
+                this.snippets = resp.data
+                this.snippets.sort((a, b) => a.order - b.order)
+                // focus the first snippet
+                if (this.snippets.length > 0) {
+                    this.$nextTick(function () {
+                        this.focusSnippetBySnippetId(this.snippets[0].id)
+                    })
+                }
+            })
 
-                    this.standaloneeditor = standaloneeditor
+            // loader
+            //     .init()
+            //     .then((monaco) => {
+            //         const editorOptions = {
+            //             language: 'java',
+            //             minimap: { enabled: true },
+            //         }
+            //         var monacoeditor = monaco.editor
+            //         var standaloneeditor = monacoeditor.create(
+            //             document.getElementById('editor'),
+            //             editorOptions,
+            //         )
 
-                    this.monacoeditor = monacoeditor
+            //         this.standaloneeditor = standaloneeditor
 
-                    if (this.mode == 'edit') {
-                        var snippetId = this.$route.query.snippetId
-                        if (snippetId == undefined) {
-                            throw Error('page init error')
-                        }
+            //         this.monacoeditor = monacoeditor
 
-                        this.snippetId = snippetId
-                        return getSnippetById(snippetId)
-                    }
-                })
-                .then((resp) => {
-                    this.id = resp.data.id
-                    this.title = resp.data.title
-                    this.standaloneeditor.setValue(resp.data.codeContent)
-                    this.language = resp.data.lang
-                    this.description = resp.data.description
-                    this.changeLanguage(resp.data.lang)
-                })
+            //         if (this.mode == 'edit') {
+            //             var snippetId = this.$route.query.snippetId
+            //             if (snippetId == undefined) {
+            //                 throw Error('page init error')
+            //             }
+
+            //             this.snippetId = snippetId
+            //             return getSnippetById(snippetId)
+            //         }
+            //     })
+            //     .then((resp) => {
+            //         this.id = resp.data.id
+            //         this.title = resp.data.title
+            //         this.standaloneeditor.setValue(resp.data.codeContent)
+            //         this.language = resp.data.lang
+            //         this.description = resp.data.description
+            //         this.changeLanguage(resp.data.lang)
+            //     })
         },
         changeLanguage(lang) {
             this.language = lang
@@ -161,7 +351,7 @@ export default {
                     })
                 })
             } else if (this.mode == 'edit') {
-                updateSnippet(this.id, {
+                updateArticle(this.id, {
                     title: this.title,
                     codeContent: code,
                     lang: this.language,
@@ -179,4 +369,8 @@ export default {
 </script>
 <style lang="scss" scoped>
 @import '~@/styles/common-style.scss';
+
+.snippet-highlight {
+    background-color: azure;
+}
 </style>

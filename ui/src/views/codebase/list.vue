@@ -5,10 +5,10 @@
         <el-pagination
             background
             layout="prev, pager, next"
-            :total="10"
+            :total="total"
             @current-change="pageChange"
         ></el-pagination>
-        <el-table :data="snippets" style="width: 100%">
+        <el-table :data="articles" style="width: 100%">
             <el-table-column
                 prop="title"
                 label="title"
@@ -16,14 +16,14 @@
             ></el-table-column>
 
             <el-table-column
-                prop="lang"
-                label="lang"
+                prop="createTime"
+                label="createTime"
                 width="180"
             ></el-table-column>
 
             <el-table-column
-                prop="createTime"
-                label="createTime"
+                prop="updateTime"
+                label="updateTime"
                 width="180"
             ></el-table-column>
             <el-table-column prop="undefined" label="operateion" width="180">
@@ -42,7 +42,7 @@
     </div>
 </template>
 <script>
-import { getAllSnippets, deleteSnippet } from '@/api/snippets'
+import { deleteArticle, listArticles } from '@/api/article'
 import Search from '@/views/codebase/comps/search.vue'
 export default {
     components: {
@@ -50,7 +50,7 @@ export default {
     },
     data() {
         return {
-            snippets: [
+            articles: [
                 {
                     id: 1,
                     title: 'title1',
@@ -77,8 +77,8 @@ export default {
         }
     },
     created() {
-        getAllSnippets().then((resp) => {
-            this.snippets = resp.data.records
+        listArticles().then((resp) => {
+            this.articles = resp.data.records
             this.total = resp.data.total
         })
     },
@@ -93,41 +93,41 @@ export default {
             this.pageNo = newPageno
             this.queryOptions.pageNo = newPageno
             this.queryOptions.pageSize = this.pageSize
-            getAllSnippets(this.queryOptions).then((resp) => {
-                this.snippets = resp.data.records
+            listArticles(this.queryOptions).then((resp) => {
+                this.articles = resp.data.records
                 this.total = resp.data.total
             })
         },
         search(data) {
             this.queryOptions = data
-            this.queryOptions.pageNo = this.pageNo
+            this.queryOptions.pageNo = 1
             this.queryOptions.pageSize = this.pageSize
-            getAllSnippets(this.queryOptions).then((resp) => {
-                this.snippets = resp.data.records
+            listArticles(this.queryOptions).then((resp) => {
+                this.articles = resp.data.records
                 this.total = resp.data.total
             })
         },
-        info(snippet) {
+        info(article) {
             this.$router.push({
                 path: '/codebase/edit',
-                query: { snippetId: snippet.id, mode: 'edit' },
+                query: { articleId: article.id, mode: 'edit' },
             })
         },
-        // delete snippet
-        remove(snippet) {
-            this.$confirm('Are you sure to delete this snippet?', 'Warning', {
+        // delete article
+        remove(article) {
+            this.$confirm('Are you sure to delete this article?', 'Warning', {
                 confirmButtonText: 'OK',
                 cancelButtonText: 'Cancel',
                 type: 'warning',
             })
                 .then(() => {
-                    deleteSnippet(snippet.id).then((resp) => {
-                        this.snippets = this.snippets.filter(
-                            (s) => s.id !== snippet.id,
+                    deleteArticle(article.id).then((resp) => {
+                        this.articles = this.articles.filter(
+                            (s) => s.id !== article.id,
                         )
                         this.$notify({
                             type: 'success',
-                            message: 'Delete snippet successfully!',
+                            message: 'Delete article successfully!',
                         })
                     })
                 })
@@ -141,4 +141,6 @@ export default {
     },
 }
 </script>
-<style lang="scss">@import '~@/styles/common-style.scss';</style>
+<style lang="scss">
+@import '~@/styles/common-style.scss';
+</style>

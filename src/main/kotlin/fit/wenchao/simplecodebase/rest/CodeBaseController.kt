@@ -49,7 +49,6 @@ class UpdateArticleRequest {
 }
 
 class CreateArticleRequest {
-    @NotBlank
     @Size(max = 255)
     var title: String? = null
 
@@ -59,12 +58,14 @@ class CreateArticleRequest {
 }
 
 class CreateSnippetRequest {
-    @NotBlank
+
     var content: String? = null
 
     @NotNull
     @PositiveOrZero
     var order: Int? = null
+
+    @NotBlank
     var lang: String? = null
     var description: String? = null // Getters and setters
 }
@@ -132,11 +133,10 @@ class CodeBaseController {
 
     // Update an existing article
     @PutMapping("/article/{articleId}")
-    fun updateArticle( @PathVariable articleId: Long, @RequestBody updateArticleRequest: UpdateArticleRequest ): Any {
+    fun updateArticle(@PathVariable articleId: Long, @RequestBody updateArticleRequest: UpdateArticleRequest): Any {
         articleService.updateArticle(articleId, updateArticleRequest)
         return JsonResult.ok()
     }
-
 
 
     // List articles
@@ -156,5 +156,20 @@ class CodeBaseController {
         return snippets
     }
 
+
+    @PostMapping("/article/{articleId}/snippet")
+    fun createSnippet(@PathVariable articleId: Long, @RequestBody createSnippetRequest: CreateSnippetRequest): Any {
+        var newSnippetHandle = snippetsService.createSnippet(articleId, createSnippetRequest)
+        return newSnippetHandle
+    }
+
+}
+
+
+data class InsertSnippetResponse(
+    var newSnippetHandle: Long? = null,
+    var orderMap: Map<Long, Int>? = null
+) {
+    constructor() : this(null, null)
 }
 

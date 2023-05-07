@@ -124,7 +124,7 @@ class ArticleServiceImpl : ArticleService {
 
         // save article first
         var article = ArticlePO()
-        article.title = title
+        article.title = title ?: "Untitled"
         article.createTime = createTime
         article.updateTime = createTime
         articleDao.save(article)
