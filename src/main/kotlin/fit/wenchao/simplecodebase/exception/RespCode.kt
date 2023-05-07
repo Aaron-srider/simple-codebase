@@ -11,6 +11,7 @@ enum class RespCode(var msg: String) {
     UPLOAD_FILE_MISSING("upload file missing"),
     OTHER_ERROR("other error"),
     NO_SNIPPET("no snippet"),
+    ARTICLE_NOT_FOUND("article not found"),
     ;
 }
 

@@ -1,6 +1,7 @@
 package fit.wenchao.simplecodebase.dao.po
 
 import com.baomidou.mybatisplus.annotation.IdType
+import com.baomidou.mybatisplus.annotation.TableField
 import com.baomidou.mybatisplus.annotation.TableId
 import com.baomidou.mybatisplus.annotation.TableName
 import java.io.Serializable
@@ -13,9 +14,11 @@ data class SnippetsPO(
     var lang: String?,
     var title: String?,
     var createTime: String?,
+    var updateTime: String?,
     var description: String?,
-    var articleId: Int?,
+    var articleId: Long?,
+    @TableField("`order`")
     var order: Int?,
 ) : Serializable {
-    constructor() : this(null, null, null, null, null, null, null, null)
+    constructor() : this(null, null, null, null, null, null, null, null, null)
 }

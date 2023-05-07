@@ -19,7 +19,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 CREATE TABLE if not exists `article`  (
                             `id` int(11) NOT NULL AUTO_INCREMENT,
-                            `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+                            `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                             `createTime` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                             PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS `snippets`  (
      `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
      `create_time` varchar(19) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
     `article_id` int(11) NULL,
+    `order` int(11) NOT NULL,
      PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 

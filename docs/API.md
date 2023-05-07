@@ -51,6 +51,12 @@ DELETE /article/${articleId}
 | articleId | number | id of the article |
 
 
+### Response Code
+
+| Code | Description       |
+| --- |-------------------|
+| ARTICLE_NOT_FOUND | article not found |
+
 
 ## Update A Artifact
 
@@ -93,5 +99,27 @@ GET /articles
 ```
 
 list<$typeref=ArticleVO>
+
+```
+
+## List Snippets for A Article
+
+### URL
+
+```
+GET /article/snippets/${articleId}
+```
+
+### Parameter
+
+| Name     | Type   | Description   |
+|----------|--------|---------------|
+| articleId   | number | id of article |
+
+### Return
+
+```
+
+list<$typeref=SnippetVO>
 
 ```

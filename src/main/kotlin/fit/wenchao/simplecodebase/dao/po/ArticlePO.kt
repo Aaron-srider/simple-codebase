@@ -8,9 +8,10 @@ import java.io.Serializable
 @TableName("`article`")
 data class ArticlePO(
     @TableId(value = "id", type = IdType.AUTO)
-    var id: Int?,
+    var id: Long?,
     var title: String?,
-    var createtime: String?
+    var createTime: String?,
+    var updateTime: String?
 ) : Serializable {
-    constructor() : this(null, null, null)
+    constructor() : this(null,null, null, null)
 }
