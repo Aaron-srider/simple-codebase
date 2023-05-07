@@ -14,7 +14,8 @@ data class SnippetsPO(
     var title: String?,
     var createTime: String?,
     var description: String?,
-    var articleId: Int ?,
+    var articleId: Int?,
+    var order: Int?,
 ) : Serializable {
-    constructor() : this(null, null, null, null, null, null, null)
+    constructor() : this(null, null, null, null, null, null, null, null)
 }
