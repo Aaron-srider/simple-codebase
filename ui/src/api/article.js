@@ -31,6 +31,13 @@ export function listArticles(queryArticle) {
     })
 }
 
+export function getArticle(articleId) {
+    return request({
+        url: `/article/${articleId}`,
+        method: 'get',
+    })
+}
+
 export function listSnippetsForArticle(articleId) {
     return request({
         url: `/article/snippets/${articleId}`,
@@ -52,3 +59,5 @@ export function deleteSnippet(snippetId) {
         method: 'delete',
     })
 }
+
+

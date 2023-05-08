@@ -11,4 +11,5 @@ interface ArticleService {
     fun listArticles(queryArticle: QueryArticle):  Page<ArticlePO>
     fun deleteArticle(articleId: Long)
     fun updateArticle(articleId: Long, updateArticleRequest: UpdateArticleRequest)
+    fun getArticle(articleId: Long): ArticlePO
 }

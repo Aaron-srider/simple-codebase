@@ -1,6 +1,6 @@
 <template>
     <div>
-        <el-button @click="toAddPage">Add Snippet</el-button>
+        <el-button @click="addSnippet">Add Snippet</el-button>
         <search @search-hit="search"></search>
         <el-pagination
             background
@@ -42,7 +42,7 @@
     </div>
 </template>
 <script>
-import { deleteArticle, listArticles } from '@/api/article'
+import { createArticle, deleteArticle, listArticles } from '@/api/article'
 import Search from '@/views/codebase/comps/search.vue'
 export default {
     components: {
@@ -83,10 +83,17 @@ export default {
         })
     },
     methods: {
-        toAddPage() {
-            this.$router.push({
-                path: '/codebase/edit',
-                query: { mode: 'create' },
+        addSnippet() {
+            createArticle({ title: 'Untitled' }).then((resp) => {
+                var articlehandle = resp.data
+                this.$notify({
+                    type: 'success',
+                    message: 'Create article successfully!',
+                })
+                this.$router.push({
+                    path: '/codebase/edit',
+                    query: { mode: 'edit', articleId: articlehandle },
+                })
             })
         },
         pageChange(newPageno) {

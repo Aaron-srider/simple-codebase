@@ -73,13 +73,12 @@ class CreateSnippetRequest {
 class UpdateSnippetRequest {
     @NotNull
     var id: Long? = null
-    var content: String? = null
-
     @NotNull
-    @PositiveOrZero
-    var order: Int? = null
+    var content: String? = null
+    @NotNull
     var lang: String? = null
-    var description: String? = null // Getters and setters
+    @NotNull
+    var description: String? = null
 }
 
 
@@ -149,6 +148,12 @@ class CodeBaseController {
         })
     }
 
+    @GetMapping("/article/{articleId}")
+    fun getArticle(@PathVariable articleId: Long): Any {
+        val article: ArticlePO = articleService.getArticle(articleId)
+        return article
+    }
+
 
     @GetMapping("/article/snippets/{articleId}")
     fun listSnippetsForArticle(@PathVariable articleId: Long): Any {
@@ -169,6 +174,7 @@ class CodeBaseController {
         var deleteSnippetResponse = snippetsService.deleteSnippet(snippetId)
         return deleteSnippetResponse
     }
+
 }
 
 

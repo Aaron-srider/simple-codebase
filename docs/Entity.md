@@ -7,11 +7,6 @@
     "required": true,
     "description": "title of the article"
   },
-  "createTime": {
-    "type": "string",
-    "required": true,
-    "description": "create time of the article"
-  },
   "snippets": {
     "type": "list<$typeref=CreateSnippet>",
     "required": true,

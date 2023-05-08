@@ -13,6 +13,7 @@ enum class RespCode(var msg: String) {
     NO_SNIPPET("no snippet"),
     ARTICLE_NOT_FOUND("article not found"),
     SNIPPET_NOT_FOUND("snippet not found"),
+    SNIPPET_NOT_IN_SAME_ARTICLE("snippet not in same article"),
     ;
 }
 

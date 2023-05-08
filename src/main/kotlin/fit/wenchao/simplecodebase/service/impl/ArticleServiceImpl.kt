@@ -82,7 +82,6 @@ class ArticleServiceImpl : ArticleService {
         snippets?.forEach { updateSnippet ->
             val existingSnippet = snippetsDao.getById(updateSnippet.id)
             existingSnippet?.let {
-                it.order = updateSnippet.order ?: existingSnippet.order
                 it.updateTime = DateTimeUtils.nowString()
                 it.codeContent = updateSnippet.content ?: existingSnippet.codeContent
                 it.lang = updateSnippet.lang ?: existingSnippet.lang
@@ -95,6 +94,10 @@ class ArticleServiceImpl : ArticleService {
         // update the article
         articleDao.updateById(existingArticle)
         logger.info { "updated article with id: $articleId" }
+    }
+
+    override fun getArticle(articleId: Long): ArticlePO {
+        return articleDao.getById(articleId) ?: throw BackendException(null, RespCode.ARTICLE_NOT_FOUND)
     }
 
     override fun deleteArticle(articleId: Long) {

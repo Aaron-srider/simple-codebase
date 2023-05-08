@@ -4,6 +4,8 @@ import fit.wenchao.simplecodebase.dao.po.*
 import fit.wenchao.simplecodebase.dao.repo.SnippetsDao
 import fit.wenchao.simplecodebase.exception.BackendException
 import fit.wenchao.simplecodebase.exception.RespCode
+import fit.wenchao.simplecodebase.rest.ExchangeOrderRequest
+import fit.wenchao.simplecodebase.rest.ExchangeOrderResponse
 import fit.wenchao.simplecodebase.service.SnippetsService
 import fit.wenchao.simplecodebase.utils.DateTimeUtils
 import mu.KotlinLogging
@@ -55,7 +57,7 @@ class SnippetsServiceImpl : SnippetsService {
         snippetsDao.save(snippetPO)
         logger.info { "save snippet success, snippet id: ${snippetPO.id}" }
 
-        val snippetIdAndOrderMap= getOrderMapOfSnippetsByArticleId(articleId =  articleId)
+        val snippetIdAndOrderMap = getOrderMapOfSnippetsByArticleId(articleId = articleId)
 
         return InsertSnippetResponse(
             newSnippetHandle = snippetPO.id,
@@ -68,19 +70,61 @@ class SnippetsServiceImpl : SnippetsService {
 
         // get the article id of the snippet
         val snippet = snippetsDao.getById(snippetId)
-        snippet?:throw BackendException(null, RespCode.SNIPPET_NOT_FOUND)
+        snippet ?: throw BackendException(null, RespCode.SNIPPET_NOT_FOUND)
 
         val articleId = snippet.articleId
 
         // remove snippet by id simply
         snippetsDao.removeById(snippetId)
 
-        val snippetIdAndOrderMap= getOrderMapOfSnippetsByArticleId(articleId!!)
+        val snippetIdAndOrderMap = getOrderMapOfSnippetsByArticleId(articleId!!)
 
         return DeleteSnippetResponse(
             deletedSnippetHandle = snippetId,
             orderMap = snippetIdAndOrderMap
         )
+    }
+
+    @Transactional
+    override fun exchangeOrder(exchangeOrderRequest: ExchangeOrderRequest): ExchangeOrderResponse {
+        var aid = exchangeOrderRequest.snippetAId
+        var bid = exchangeOrderRequest.snippetBId
+
+        var aSnippet: SnippetsPO? = null
+        var bSnippet: SnippetsPO? = null
+
+        // check existence of two snippet, if aid == bid, check once
+        if (aid == bid) {
+            aSnippet = snippetsDao.getById(aid!!)
+            aSnippet ?: throw BackendException(null, RespCode.SNIPPET_NOT_FOUND)
+
+        } else {
+            aSnippet = snippetsDao.getById(aid!!)
+            aSnippet ?: throw BackendException(null, RespCode.SNIPPET_NOT_FOUND)
+
+            bSnippet = snippetsDao.getById(bid!!)
+            bSnippet ?: throw BackendException(null, RespCode.SNIPPET_NOT_FOUND)
+
+            // check if the two snippets are in the same article
+
+            if (aSnippet.articleId != bSnippet.articleId) {
+                throw BackendException(null, RespCode.SNIPPET_NOT_IN_SAME_ARTICLE)
+            }
+
+            // exchange order
+            val aOrder = aSnippet.order
+            val bOrder = bSnippet.order
+
+            aSnippet.order = bOrder
+            bSnippet.order = aOrder
+
+            snippetsDao.updateById(aSnippet)
+            snippetsDao.updateById(bSnippet)
+        }
+
+        val exchangeOrderResponse = ExchangeOrderResponse()
+        exchangeOrderResponse.orderMap = getOrderMapOfSnippetsByArticleId(aSnippet.articleId!!)
+        return exchangeOrderResponse
     }
 
     private fun getOrderMapOfSnippetsByArticleId(articleId: Long): Map<Long, Int> {

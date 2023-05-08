@@ -21,11 +21,11 @@
             </div>
             <!-- edit snippet bar -->
             <div>
-                <el-button @click="saveCode">save</el-button>
+                <el-button @click="saveArticle">save</el-button>
                 <el-button @click="addNewSnippet">+</el-button>
                 <el-button @click="removeSnippet">-</el-button>
-                <el-button>up</el-button>
-                <el-button>down</el-button>
+                <el-button @click="upOrDownASnippet('previous')">up</el-button>
+                <el-button @click="upOrDownASnippet('next')">down</el-button>
             </div>
         </div>
         <div>{{ selectedSnippetId }}</div>
@@ -50,7 +50,7 @@
                     <div class="mgr20">
                         <div>
                             <el-select
-                                v-model="language"
+                                v-model="snippet.lang"
                                 @change="handleOptionChange"
                             >
                                 <el-option
@@ -114,14 +114,17 @@
 </template>
 
 <script>
+import Vue from 'vue'
 import Tinymce from '@/components/Tinymce'
 import loader from '@monaco-editor/loader'
 import {
     createSnippet,
     deleteSnippet,
+    getArticle,
     listSnippetsForArticle,
     updateArticle,
 } from '@/api/article'
+import { exchangeOrder } from '@/api/snippets'
 export default {
     components: { Tinymce },
     beforeRouteLeave(to, from, next) {
@@ -155,9 +158,105 @@ export default {
     },
 
     methods: {
+        // save article, mainly title and string value of snippet
+        saveArticle() {
+            var articleId = this.articleId
+            var title = this.title
+            var snippets = this.snippets
+            var updateArticleRequest = {
+                title,
+                snippets,
+            }
+            updateArticle(articleId, updateArticleRequest).then((resp) => {
+                this.$notify({
+                    title: 'success',
+                    message: 'Article Saved',
+                    type: 'success',
+                })
+            })
+        },
+        swapObjectsByIds(array, id1, id2) {
+            debugger
+            // Find the indexes of the objects in the array
+            const index1 = array.findIndex((obj) => obj.id == id1)
+            const index2 = array.findIndex((obj) => obj.id == id2)
+
+            // Swap the objects at the found indexes
+            const temp = array[index1]
+            Vue.set(array, index1, array[index2])
+            Vue.set(array, index2, temp)
+
+            // Return the updated array
+            return array
+        },
+        upOrDownASnippet(upOrDown) {
+            var snippetId = this.selectedSnippetId
+            var sib = this.findSiblineSnippet(snippetId, upOrDown)
+
+            if (!sib) {
+                throw Error()
+            }
+
+            var sibId = sib.id
+            var snippetAId = snippetId
+            var snippetBId = sibId
+
+            exchangeOrder({ snippetAId, snippetBId }).then((resp) => {
+                // update the order of all snippets by snippet id according to orderMap
+                var orderMap = resp.data.orderMap
+                this.updateOrder(orderMap)
+            })
+        },
+        // find sibling snippet by id
+        findSiblineSnippet(snippetId, direction) {
+            switch (direction) {
+                case 'next':
+                    return this.findNextSnippet(snippetId)
+                case 'previous':
+                    return this.findPreviousSnippet(snippetId)
+                default:
+                    throw Error()
+            }
+        },
+        // find next or previous snippet
+        findNextSnippet(snippetId) {
+            var index = this.snippets.findIndex(
+                (snippet) => snippet.id == snippetId,
+            )
+
+            // snippet is not in the array or array is empty
+            if (index == -1) {
+                return
+            }
+
+            // last snippet, return the first one to cycle
+            if (index == this.snippets.length - 1) {
+                return this.snippets[0]
+            }
+
+            return this.snippets[index + 1]
+        },
+        findPreviousSnippet(snippetId) {
+            var index = this.snippets.findIndex(
+                (snippet) => snippet.id == snippetId,
+            )
+
+            // snippet is not in the array or array is empty
+            if (index == -1) {
+                return
+            }
+
+            // first snippet, return the last one to cycle
+            if (index == 0) {
+                return this.snippets[this.snippets.length - 1]
+            }
+
+            return this.snippets[index - 1]
+        },
+
         // remove the snippet seletedSnippetId points to
         removeSnippet() {
-            // check if there is still snippt
+            // check if there is still any snippt
             if (this.snippets.length == 0) {
                 return
             }
@@ -185,11 +284,14 @@ export default {
                     (snippet) => snippet.id != snippetId,
                 )
 
+                // if there is no other snippet, over
+                if (this.snippets.length == 0) {
+                    this.focusOnNothing()
+                    return
+                }
+
                 var orderMap = res.data.orderMap
-                // reassign the order of the snippets according to the orderMap returned from the backend
-                this.snippets.forEach((snippet) => {
-                    snippet.order = orderMap[snippet.id]
-                })
+                this.updateOrder(orderMap)
 
                 // focus the same place if we just removed the last one snippet
                 if (isLast) {
@@ -203,6 +305,19 @@ export default {
                         this.snippets[originalPlace].id,
                     )
                 }
+            })
+        },
+        // update order of elems according to the orderMap
+        updateOrder(orderMap) {
+            this.snippets.forEach((snippet) => {
+                if (orderMap[snippet.id] != undefined) {
+                    snippet.order = orderMap[snippet.id]
+                }
+            })
+
+            // sort snippets by order
+            this.snippets.sort((a, b) => {
+                return a.order - b.order
             })
         },
         getAllSnippetElement() {
@@ -231,6 +346,10 @@ export default {
             var selectedSnippetId = this.getSippetIdFromDivId(target.id)
 
             this.doFocusSnippet(target, selectedSnippetId)
+        },
+
+        focusOnNothing() {
+            this.selectedSnippetId = -1
         },
 
         focusSnippetBySnippetId(selectedSnippetId) {
@@ -284,7 +403,6 @@ export default {
                 order: newOrder,
             }).then((resp) => {
                 var newSnippetHandle = resp.data.newSnippetHandle
-                var orderMap = resp.data.orderMap
 
                 // add new snippet to snippets anyway
                 this.snippets.push({
@@ -296,14 +414,8 @@ export default {
                 })
 
                 // update the order of all snippets by snippet id according to orderMap
-                for (let i = 0; i < snippets.length; i++) {
-                    snippets[i].order = orderMap[snippets[i].id]
-                }
-
-                // sort snippets by order
-                snippets.sort((a, b) => {
-                    return a.order - b.order
-                })
+                var orderMap = resp.data.orderMap
+                this.updateOrder(orderMap)
 
                 // focus on the new snippet
                 this.$nextTick(function () {
@@ -325,16 +437,22 @@ export default {
         },
         runCode() {},
         init() {
-            listSnippetsForArticle(this.articleId).then((resp) => {
-                this.snippets = resp.data
-                this.snippets.sort((a, b) => a.order - b.order)
-                // focus the first snippet
-                if (this.snippets.length > 0) {
-                    this.$nextTick(function () {
-                        this.focusSnippetBySnippetId(this.snippets[0].id)
-                    })
-                }
-            })
+            // get article id from url
+            getArticle(this.articleId)
+                .then((resp) => {
+                    this.title = resp.data.title
+                    return listSnippetsForArticle(this.articleId)
+                })
+                .then((resp) => {
+                    this.snippets = resp.data
+                    this.snippets.sort((a, b) => a.order - b.order)
+                    // focus the first snippet
+                    if (this.snippets.length > 0) {
+                        this.$nextTick(function () {
+                            this.focusSnippetBySnippetId(this.snippets[0].id)
+                        })
+                    }
+                })
 
             // loader
             //     .init()
