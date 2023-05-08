@@ -83,6 +83,7 @@ export default {
         })
     },
     methods: {
+       
         addSnippet() {
             createArticle({ title: 'Untitled' }).then((resp) => {
                 var articlehandle = resp.data

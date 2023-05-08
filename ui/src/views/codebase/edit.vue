@@ -35,7 +35,7 @@
             <div
                 :id="formAnIdForSnippetDiv(snippet)"
                 @click="focusSnippet($event)"
-                style="border: 1px solid"
+                :style="`border: 1px solid; height: 300px;`"
                 v-for="snippet in snippets"
                 :key="snippet.id"
                 class="flex mgb20"
@@ -44,72 +44,41 @@
 
                 <div>order: {{ snippet.order }}</div>
                 <!-- code -->
-                <div>
+                <div style="height: 100%">
                     <!-- code edit bar -->
+                    <div style="height: 20%">
+                        <el-select
+                            v-model="snippet.lang"
+                            @change="handleOptionChange(snippet)"
+                        >
+                            <el-option value="java" label="java"></el-option>
+                            <el-option
+                                value="kotlin"
+                                label="kotlin"
+                            ></el-option>
+                            <el-option
+                                value="javascript"
+                                label="javascript"
+                            ></el-option>
+                            <el-option value="cpp" label="c/cpp"></el-option>
+                            <el-option value="html" label="html"></el-option>
+                        </el-select>
 
-                    <div class="mgr20">
-                        <div>
-                            <el-select
-                                v-model="snippet.lang"
-                                @change="handleOptionChange"
-                            >
-                                <el-option
-                                    value="java"
-                                    label="java"
-                                ></el-option>
-                                <el-option
-                                    value="kotlin"
-                                    label="kotlin"
-                                ></el-option>
-                                <el-option
-                                    value="javascript"
-                                    label="javascript"
-                                ></el-option>
-                                <el-option
-                                    value="cpp"
-                                    label="c/cpp"
-                                ></el-option>
-                                <el-option
-                                    value="html"
-                                    label="html"
-                                ></el-option>
-                            </el-select>
-
-                            <el-button @click="runCode">run</el-button>
-                        </div>
-                        <el-input
-                            type="textarea"
-                            v-model="snippet.content"
-                        ></el-input>
+                        <el-button @click="runCode">run</el-button>
                     </div>
+                    <!-- code editor -->
+                    <div
+                        :id="formAnIdForEditorDiv(snippet)"
+                        :style="`width: ${editorWidth}; height: 80%; border: 1px solid`"
+                    ></div>
                 </div>
 
                 <!-- desc -->
-                <div>
-                    <el-input
-                        type="textarea"
-                        v-model="snippet.description"
-                    ></el-input>
+                <div style="height: 100%">
+                    <Tinymce v-model="snippet.description" :height="'200'" />
                 </div>
             </div>
         </div>
-        <!-- <div class="flex">
-            <div>
-                <div id="editor" style="width: 500px; height: 500px"></div>
-                <div>
-                    <el-input
-                        type="textarea"
-                        :rows="10"
-                        placeholder="output"
-                        v-model="onlineCodeRunningOutput"
-                    ></el-input>
-                </div>
-            </div>
-
-            <div class="flexg1">
-                <Tinymce ref="editor" v-model="description" :height="400" />
-            </div>
-        </div> -->
     </div>
 </template>
 
@@ -124,7 +93,7 @@ import {
     listSnippetsForArticle,
     updateArticle,
 } from '@/api/article'
-import { exchangeOrder } from '@/api/snippets'
+import { exchangeOrder, updateLanguageForSnippet } from '@/api/snippets'
 export default {
     components: { Tinymce },
     beforeRouteLeave(to, from, next) {
@@ -140,9 +109,13 @@ export default {
     },
     data() {
         return {
+            editorWidth: '500px',
+            editorHeight: '250px',
             articleId: this.$route.query.articleId,
             title: '',
             language: 'java',
+            editors: [],
+            monaco: undefined,
             monacoeditor: undefined,
             mode: this.$route.query.mode,
             description: '',
@@ -154,14 +127,89 @@ export default {
     computed: {},
     watch: {},
     async created() {
-        this.init()
+        loader.init().then((monaco) => {
+            this.monaco = monaco
+            this.init()
+        })
     },
 
     methods: {
+        getAEditorById(editorId) {
+            // find from editors
+            var editor = this.editors.find((editor) => {
+                return editor.id === editorId
+            })
+            return editor
+        },
+        removeAnEditor(editorId) {
+            // find from editors
+            var index = this.editors.findIndex((editor) => {
+                return editor.id === editorId
+            })
+            if (index == -1) {
+                throw new Error('Editor does not exist')
+            }
+            this.editors.splice(index, 1)
+        },
+        getCodeFromEditor(editor) {
+            return editor.editor.getValue()
+        },
+        setCodeToEditor(editor, code) {
+            return editor.editor.setValue(code)
+        },
+        setLangForEditor(monaco, editor, lang) {
+            monaco.editor.setModelLanguage(editor.editor.getModel(), lang)
+        },
+        formAnIdForEditorDiv(snippet) {
+            return `editor-${snippet.id}`
+        },
+
+        // render an editor accroding to a snippet, invoked every time a content or lang of a snippet changed, also when the page is inited
+        renderMonaco(snippet) {
+            var editorId = this.formAnIdForEditorDiv(snippet)
+            // see if we have render it
+            var editor = this.getAEditorById(editorId)
+            // render a new editor
+            var code = snippet.content
+            var lang = snippet.lang
+            if (!editor) {
+                // setup lang
+                const editorOptions = {
+                    language: lang,
+                    minimap: { enabled: true },
+                }
+
+                var standaloneeditor = this.monaco.editor.create(
+                    document.getElementById(editorId),
+                    editorOptions,
+                )
+
+                // setup code
+                standaloneeditor.setValue(code)
+
+                this.editors.push({ id: editorId, editor: standaloneeditor })
+            } else {
+                // simply update the code and lang of editor
+                this.setCodeToEditor(editor, code)
+                this.setLangForEditor(this.monaco, editor, lang)
+            }
+        },
         // save article, mainly title and string value of snippet
         saveArticle() {
             var articleId = this.articleId
             var title = this.title
+
+            // update the content attr of snippet according to editors
+            this.snippets.forEach((snippet) => {
+                var editorId = this.formAnIdForEditorDiv(snippet)
+                var editor = this.getAEditorById(editorId)
+                if (editor) {
+                    var code = this.getCodeFromEditor(editor)
+                    snippet.content = code
+                }
+            })
+
+            // request for update
             var snippets = this.snippets
             var updateArticleRequest = {
                 title,
@@ -176,7 +224,6 @@ export default {
             })
         },
         swapObjectsByIds(array, id1, id2) {
-            debugger
             // Find the indexes of the objects in the array
             const index1 = array.findIndex((obj) => obj.id == id1)
             const index2 = array.findIndex((obj) => obj.id == id2)
@@ -293,18 +340,24 @@ export default {
                 var orderMap = res.data.orderMap
                 this.updateOrder(orderMap)
 
-                // focus the same place if we just removed the last one snippet
-                if (isLast) {
-                    // focus on the last one
-                    this.focusSnippetBySnippetId(
-                        this.snippets[this.snippets.length - 1].id,
-                    )
-                } else {
-                    // focus the next snippet if we just removed the snippet that is not the last one
-                    this.focusSnippetBySnippetId(
-                        this.snippets[originalPlace].id,
-                    )
-                }
+                this.$nextTick(function () {
+                    // focus the same place if we just removed the last one snippet
+                    if (isLast) {
+                        // focus on the last one
+                        this.focusSnippetBySnippetId(
+                            this.snippets[this.snippets.length - 1].id,
+                        )
+                    } else {
+                        // focus the next snippet if we just removed the snippet that is not the last one
+                        this.focusSnippetBySnippetId(
+                            this.snippets[originalPlace].id,
+                        )
+                    }
+
+                    // remove editor
+                    var editorId = this.formAnIdForEditorDiv({ id: snippetId })
+                    this.removeAnEditor(editorId)
+                })
             })
         },
         // update order of elems according to the orderMap
@@ -405,13 +458,14 @@ export default {
                 var newSnippetHandle = resp.data.newSnippetHandle
 
                 // add new snippet to snippets anyway
-                this.snippets.push({
+                var newSnippet = {
                     id: newSnippetHandle,
                     content: '',
                     description: '',
                     lang: 'kotlin',
                     order: newOrder,
-                })
+                }
+                this.snippets.push(newSnippet)
 
                 // update the order of all snippets by snippet id according to orderMap
                 var orderMap = resp.data.orderMap
@@ -420,6 +474,7 @@ export default {
                 // focus on the new snippet
                 this.$nextTick(function () {
                     this.focusSnippetBySnippetId(newSnippetHandle)
+                    this.renderMonaco(newSnippet)
                 })
             })
         },
@@ -432,8 +487,8 @@ export default {
                 // Do something else here, such as saving data or triggering an action
             }
         },
-        handleOptionChange() {
-            this.changeLanguage(this.language)
+        handleOptionChange(snippet) {
+            this.updateLanguageForSnippet(snippet.id, snippet.lang)
         },
         runCode() {},
         init() {
@@ -446,56 +501,30 @@ export default {
                 .then((resp) => {
                     this.snippets = resp.data
                     this.snippets.sort((a, b) => a.order - b.order)
-                    // focus the first snippet
+
                     if (this.snippets.length > 0) {
                         this.$nextTick(function () {
+                            // focus the first snippet
+                            this.snippets.forEach((snippet) => {
+                                this.renderMonaco(snippet)
+                            })
+                            // render editor to ui
                             this.focusSnippetBySnippetId(this.snippets[0].id)
                         })
                     }
                 })
-
-            // loader
-            //     .init()
-            //     .then((monaco) => {
-            //         const editorOptions = {
-            //             language: 'java',
-            //             minimap: { enabled: true },
-            //         }
-            //         var monacoeditor = monaco.editor
-            //         var standaloneeditor = monacoeditor.create(
-            //             document.getElementById('editor'),
-            //             editorOptions,
-            //         )
-
-            //         this.standaloneeditor = standaloneeditor
-
-            //         this.monacoeditor = monacoeditor
-
-            //         if (this.mode == 'edit') {
-            //             var snippetId = this.$route.query.snippetId
-            //             if (snippetId == undefined) {
-            //                 throw Error('page init error')
-            //             }
-
-            //             this.snippetId = snippetId
-            //             return getSnippetById(snippetId)
-            //         }
-            //     })
-            //     .then((resp) => {
-            //         this.id = resp.data.id
-            //         this.title = resp.data.title
-            //         this.standaloneeditor.setValue(resp.data.codeContent)
-            //         this.language = resp.data.lang
-            //         this.description = resp.data.description
-            //         this.changeLanguage(resp.data.lang)
-            //     })
         },
-        changeLanguage(lang) {
-            this.language = lang
-            this.monacoeditor.setModelLanguage(
-                this.standaloneeditor.getModel(),
-                lang,
-            )
+        updateLanguageForSnippet(snippetId, lang) {
+            // request backend to change language
+            updateLanguageForSnippet(snippetId, lang).then((resp) => {
+                this.$nextTick(function () {
+                    // find the snippet
+                    var snippet = this.snippets.find(
+                        (snippet) => snippet.id == snippetId,
+                    )
+                    this.renderMonaco(snippet)
+                })
+            })
         },
         saveCode() {
             const code = this.standaloneeditor.getValue()

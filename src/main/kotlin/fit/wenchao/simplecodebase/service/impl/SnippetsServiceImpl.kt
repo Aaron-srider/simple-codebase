@@ -6,6 +6,7 @@ import fit.wenchao.simplecodebase.exception.BackendException
 import fit.wenchao.simplecodebase.exception.RespCode
 import fit.wenchao.simplecodebase.rest.ExchangeOrderRequest
 import fit.wenchao.simplecodebase.rest.ExchangeOrderResponse
+import fit.wenchao.simplecodebase.rest.UpdateSnippetRequest
 import fit.wenchao.simplecodebase.service.SnippetsService
 import fit.wenchao.simplecodebase.utils.DateTimeUtils
 import mu.KotlinLogging
@@ -125,6 +126,20 @@ class SnippetsServiceImpl : SnippetsService {
         val exchangeOrderResponse = ExchangeOrderResponse()
         exchangeOrderResponse.orderMap = getOrderMapOfSnippetsByArticleId(aSnippet.articleId!!)
         return exchangeOrderResponse
+    }
+
+    @Transactional
+    override fun update(snippetId:Long, updateSnippetRequest: UpdateSnippetRequest) {
+
+        // check existence
+        val snippet = snippetsDao.getById(snippetId)
+        snippet ?: throw BackendException(null, RespCode.SNIPPET_NOT_FOUND)
+
+        // update snippet
+        snippet.lang = updateSnippetRequest.lang
+        snippet.updateTime = DateTimeUtils.nowString()
+
+        snippetsDao.updateById(snippet)
     }
 
     private fun getOrderMapOfSnippetsByArticleId(articleId: Long): Map<Long, Int> {

@@ -7,3 +7,11 @@ export function exchangeOrder(exchangeOrderRequest) {
         data: exchangeOrderRequest
     })
 }
+
+export function updateLanguageForSnippet(snippetId, lang) {
+    return request({
+        url: `/snippet/${snippetId}`,
+        method: 'put',
+        data: { lang }
+    })
+}

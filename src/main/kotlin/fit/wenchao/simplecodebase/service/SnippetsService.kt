@@ -6,6 +6,8 @@ import fit.wenchao.simplecodebase.dao.po.InsertSnippetResponse
 import fit.wenchao.simplecodebase.dao.po.SnippetVO
 import fit.wenchao.simplecodebase.rest.ExchangeOrderRequest
 import fit.wenchao.simplecodebase.rest.ExchangeOrderResponse
+import fit.wenchao.simplecodebase.rest.UpdateSnippetRequest
+import org.springframework.transaction.annotation.Transactional
 
 
 interface SnippetsService {
@@ -15,4 +17,5 @@ interface SnippetsService {
     fun deleteSnippet(snippetId: Long): DeleteSnippetResponse
     fun exchangeOrder(exchangeOrderRequest: ExchangeOrderRequest): ExchangeOrderResponse
 
+    fun update(snippetId: Long, updateSnippetRequest: UpdateSnippetRequest)
 }
