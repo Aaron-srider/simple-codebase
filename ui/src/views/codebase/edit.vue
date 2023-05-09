@@ -38,14 +38,16 @@
                 @click="focusSnippet($event)"
                 v-for="snippet in snippets"
                 :key="snippet.id"
-                class="mgb20 "
+                class="mgb20"
             >
                 <div v-if="debugui">
                     <div class="mgr20">id: {{ snippet.id }}</div>
 
                     <div>order: {{ snippet.order }}</div>
                 </div>
+
                 <!-- code edit bar -->
+                <!-- containing a lang selection and run code button -->
                 <div>
                     <el-select
                         size="small"
@@ -65,6 +67,8 @@
                     <el-button size="small" @click="runCode">run</el-button>
                 </div>
 
+                <!-- coding area -->
+                <!-- containing the code editor and rich text editor -->
                 <div class="flex" :style="`height: ${snippetHeight}px;`">
                     <!-- code -->
                     <div style="height: 100%" class="flexg1">
@@ -78,6 +82,7 @@
                     <!-- desc -->
                     <div style="height: 100%" class="flexg1">
                         <Tinymce
+                            :ref="formAnIdForRichTextEditor(snippet)"
                             v-model="snippet.description"
                             :height="`${richtextHeight}px`"
                         />
@@ -138,7 +143,8 @@ export default {
     watch: {},
 
     updated() {},
-    async created() {
+    async created() {},
+    mounted() {
         this.calculateEditorHeight()
         loader.init().then((monaco) => {
             this.monaco = monaco
@@ -147,6 +153,28 @@ export default {
     },
 
     methods: {
+        test() {
+            // var ecm = this.getARichTextById(
+            //     this.formAnIdForRichTextEditor({ id: 50 }),
+            // )
+            // ecm.initTinymce()
+            // this.setContentToARichText(
+            //     ecm,
+            //     'alkhg;lajsdfashglk;asjdf;aslkdjfl;asjdlkf',
+            // )
+        },
+        formAnIdForRichTextEditor(snippet) {
+            return `richText${snippet.id}`
+        },
+        getARichTextById(richTextId) {
+            return this.$refs[richTextId][0]
+        },
+        setContentToARichText(richText, value) {
+            richText.setContent(value)
+        },
+        getContentToARichText(richText) {
+            return richText.getContent()
+        },
         calculateEditorHeight() {
             var richTextYBorderSize = 3
             var richTextToolbarHeight = 64
@@ -157,6 +185,7 @@ export default {
             this.editorHeight = this.snippetHeight - editorToolbarHeight
         },
         toggleDebugUI() {
+            this.test()
             this.debugui = !this.debugui
         },
         getAEditorById(editorId) {
@@ -214,6 +243,7 @@ export default {
 
                 this.editors.push({ id: editorId, editor: standaloneeditor })
             } else {
+                code = this.getCodeFromEditor(editor)
                 // simply update the code and lang of editor
                 this.setCodeToEditor(editor, code)
                 this.setLangForEditor(this.monaco, editor, lang)
@@ -266,7 +296,7 @@ export default {
             var sib = this.findSiblineSnippet(snippetId, upOrDown)
 
             if (!sib) {
-                throw Error()
+                return
             }
 
             var sibId = sib.id
@@ -303,7 +333,8 @@ export default {
 
             // last snippet, return the first one to cycle
             if (index == this.snippets.length - 1) {
-                return this.snippets[0]
+                // return this.snippets[0]
+                return
             }
 
             return this.snippets[index + 1]
@@ -320,7 +351,8 @@ export default {
 
             // first snippet, return the last one to cycle
             if (index == 0) {
-                return this.snippets[this.snippets.length - 1]
+                // return this.snippets[this.snippets.length - 1]
+                return
             }
 
             return this.snippets[index - 1]
@@ -397,6 +429,21 @@ export default {
             this.snippets.sort((a, b) => {
                 return a.order - b.order
             })
+
+            this.$nextTick(function () {
+                // reload all richtext
+                this.snippets.forEach((snippet) => {
+                    // find the richtext div
+                    var richTextEditorId =
+                        this.formAnIdForRichTextEditor(snippet)
+                    var richText = this.getARichTextById(richTextEditorId)
+
+                    // reload the richtext
+                    richText.reload()
+                })
+            })
+
+            // this.renderDescToRichText()
         },
         getAllSnippetElement() {
             // get all elements whose id starts with "snippet"
@@ -516,6 +563,23 @@ export default {
             this.updateLanguageForSnippet(snippet.id, snippet.lang)
         },
         runCode() {},
+        renderDescToRichText() {
+            // set content to each rich text editor
+            this.snippets.forEach((snippet) => {
+                // generate richtext id
+                var richtextId = this.formAnIdForRichTextEditor(snippet)
+                console.log(this.$refs)
+
+                // get richtext element
+                var richtext = this.getARichTextById(richtextId)
+
+                console.log('richtext: ', richtext)
+                console.log('its value: ', this.getContentToARichText(richtext))
+
+                // set content to it
+                this.setContentToARichText(richtext, snippet.description)
+            })
+        },
         init() {
             // get article id from url
             getArticle(this.articleId)

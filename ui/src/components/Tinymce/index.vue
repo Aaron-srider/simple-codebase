@@ -51,7 +51,9 @@ export default {
             type: Array,
             required: false,
             default() {
-                return []
+                return [
+                    '    strikethrough alignleft aligncenter alignright outdent indent  blockquote undo redo  subscript superscript code codesample',
+                ]
             },
         },
         menubar: {
@@ -104,9 +106,6 @@ export default {
     },
     created() {
         // this.menubar = "file edit insert view format table"
-        this.toolbar = [
-            '    strikethrough alignleft aligncenter alignright outdent indent  blockquote undo redo  subscript superscript code codesample',
-        ]
     },
     mounted() {
         this.init()
@@ -135,6 +134,7 @@ export default {
         },
         initTinymce() {
             const _this = this
+
             window.tinymce.init({
                 selector: `#${this.tinymceId}`,
                 language: this.languageTypeList['en'],
@@ -207,6 +207,11 @@ export default {
                 //   });
                 // },
             })
+            console.log(`load mce ${this.tinymceId}`)
+        },
+        reload() {
+            this.destroyTinymce()
+            this.initTinymce()
         },
         destroyTinymce() {
             const tinymce = window.tinymce.get(this.tinymceId)
@@ -222,7 +227,7 @@ export default {
             window.tinymce.get(this.tinymceId).setContent(value)
         },
         getContent() {
-            window.tinymce.get(this.tinymceId).getContent()
+            return window.tinymce.get(this.tinymceId).getContent()
         },
         imageSuccessCBK(arr) {
             arr.forEach((v) =>
