@@ -1,5 +1,6 @@
 <template>
     <div class="">
+        <el-button @click="toggleDebugUI()">debugui</el-button>
         <div class="flex mgb20 mgt20">
             <div class="flex flex-center">
                 <a
@@ -28,54 +29,59 @@
                 <el-button @click="upOrDownASnippet('next')">down</el-button>
             </div>
         </div>
-        <div>{{ selectedSnippetId }}</div>
+        <div v-if="debugui">{{ selectedSnippetId }}</div>
         <!-- snippets -->
         <div>
             <!-- rows -->
             <div
                 :id="formAnIdForSnippetDiv(snippet)"
                 @click="focusSnippet($event)"
-                :style="`border: 1px solid; height: 300px;`"
                 v-for="snippet in snippets"
                 :key="snippet.id"
-                class="flex mgb20"
+                class="mgb20 "
             >
-                <div class="mgr20">id: {{ snippet.id }}</div>
+                <div v-if="debugui">
+                    <div class="mgr20">id: {{ snippet.id }}</div>
 
-                <div>order: {{ snippet.order }}</div>
-                <!-- code -->
-                <div style="height: 100%">
-                    <!-- code edit bar -->
-                    <div style="height: 20%">
-                        <el-select
-                            v-model="snippet.lang"
-                            @change="handleOptionChange(snippet)"
-                        >
-                            <el-option value="java" label="java"></el-option>
-                            <el-option
-                                value="kotlin"
-                                label="kotlin"
-                            ></el-option>
-                            <el-option
-                                value="javascript"
-                                label="javascript"
-                            ></el-option>
-                            <el-option value="cpp" label="c/cpp"></el-option>
-                            <el-option value="html" label="html"></el-option>
-                        </el-select>
+                    <div>order: {{ snippet.order }}</div>
+                </div>
+                <!-- code edit bar -->
+                <div>
+                    <el-select
+                        size="small"
+                        v-model="snippet.lang"
+                        @change="handleOptionChange(snippet)"
+                    >
+                        <el-option value="java" label="java"></el-option>
+                        <el-option value="kotlin" label="kotlin"></el-option>
+                        <el-option
+                            value="javascript"
+                            label="javascript"
+                        ></el-option>
+                        <el-option value="cpp" label="c/cpp"></el-option>
+                        <el-option value="html" label="html"></el-option>
+                    </el-select>
 
-                        <el-button @click="runCode">run</el-button>
-                    </div>
-                    <!-- code editor -->
-                    <div
-                        :id="formAnIdForEditorDiv(snippet)"
-                        :style="`width: ${editorWidth}; height: 80%; border: 1px solid`"
-                    ></div>
+                    <el-button size="small" @click="runCode">run</el-button>
                 </div>
 
-                <!-- desc -->
-                <div style="height: 100%">
-                    <Tinymce v-model="snippet.description" :height="'200'" />
+                <div class="flex" :style="`height: ${snippetHeight}px;`">
+                    <!-- code -->
+                    <div style="height: 100%" class="flexg1">
+                        <!-- code editor -->
+                        <div
+                            :id="formAnIdForEditorDiv(snippet)"
+                            :style="`width: 100%; height: ${editorHeight}px; border: 1px solid`"
+                        ></div>
+                    </div>
+
+                    <!-- desc -->
+                    <div style="height: 100%" class="flexg1">
+                        <Tinymce
+                            v-model="snippet.description"
+                            :height="`${richtextHeight}px`"
+                        />
+                    </div>
                 </div>
             </div>
         </div>
@@ -109,8 +115,12 @@ export default {
     },
     data() {
         return {
+            debugui: false,
+            snippetHeight: 250,
+            editorHeight: 0,
+            richtextHeight: 0,
             editorWidth: '500px',
-            editorHeight: '250px',
+            richtextWidth: '250px',
             articleId: this.$route.query.articleId,
             title: '',
             language: 'java',
@@ -126,7 +136,10 @@ export default {
     },
     computed: {},
     watch: {},
+
+    updated() {},
     async created() {
+        this.calculateEditorHeight()
         loader.init().then((monaco) => {
             this.monaco = monaco
             this.init()
@@ -134,6 +147,18 @@ export default {
     },
 
     methods: {
+        calculateEditorHeight() {
+            var richTextYBorderSize = 3
+            var richTextToolbarHeight = 64
+            this.richtextHeight =
+                this.snippetHeight - richTextToolbarHeight - richTextYBorderSize
+
+            var editorToolbarHeight = 0
+            this.editorHeight = this.snippetHeight - editorToolbarHeight
+        },
+        toggleDebugUI() {
+            this.debugui = !this.debugui
+        },
         getAEditorById(editorId) {
             // find from editors
             var editor = this.editors.find((editor) => {
