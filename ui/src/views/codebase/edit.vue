@@ -1,95 +1,106 @@
 <template>
     <div class="">
-        <el-button @click="toggleDebugUI()">debugui</el-button>
-        <div class="flex mgb20 mgt20">
-            <div class="flex flex-center">
-                <a
-                    href="#"
-                    onclick="history.back(); return false;"
-                    style="font-size: 16px"
-                >
-                    <i class="el-icon-back"></i>
-
-                    Back To Snippets List
-                </a>
-            </div>
-        </div>
-
-        <!-- top edit bar -->
-        <div class="mgb20">
-            <div class="flex">
-                <el-input v-model="title" style="width: 30%"></el-input>
-            </div>
-            <!-- edit snippet bar -->
-            <div>
-                <el-button @click="saveArticle">save</el-button>
-                <el-button @click="addNewSnippet">+</el-button>
-                <el-button @click="removeSnippet">-</el-button>
-                <el-button @click="upOrDownASnippet('previous')">up</el-button>
-                <el-button @click="upOrDownASnippet('next')">down</el-button>
-            </div>
-        </div>
-        <div v-if="debugui">{{ selectedSnippetId }}</div>
-        <!-- snippets -->
-        <div>
-            <!-- rows -->
-            <div
-                :id="formAnIdForSnippetDiv(snippet)"
-                @click="focusSnippet($event)"
-                v-for="snippet in snippets"
-                :key="snippet.id"
-                class="mgb20"
-            >
-                <div v-if="debugui">
-                    <div class="mgr20">id: {{ snippet.id }}</div>
-
-                    <div>order: {{ snippet.order }}</div>
-                </div>
-
-                <!-- code edit bar -->
-                <!-- containing a lang selection and run code button -->
-                <div>
-                    <el-select
-                        size="small"
-                        v-model="snippet.lang"
-                        @change="handleOptionChange(snippet)"
+        <page-header :title="'Edit'"></page-header>
+        <page-content>
+            <el-button @click="toggleDebugUI()">debugui</el-button>
+            <div class="flex mgb20 mgt20">
+                <div class="flex flex-center">
+                    <a
+                        href="#"
+                        onclick="history.back(); return false;"
+                        style="font-size: 16px"
                     >
-                        <el-option value="java" label="java"></el-option>
-                        <el-option value="kotlin" label="kotlin"></el-option>
-                        <el-option
-                            value="javascript"
-                            label="javascript"
-                        ></el-option>
-                        <el-option value="cpp" label="c/cpp"></el-option>
-                        <el-option value="html" label="html"></el-option>
-                    </el-select>
+                        <i class="el-icon-back"></i>
 
-                    <el-button size="small" @click="runCode">run</el-button>
+                        Back To Snippets List
+                    </a>
                 </div>
+            </div>
 
-                <!-- coding area -->
-                <!-- containing the code editor and rich text editor -->
-                <div class="flex" :style="`height: ${snippetHeight}px;`">
-                    <!-- code -->
-                    <div style="height: 100%" class="flexg1">
-                        <!-- code editor -->
-                        <div
-                            :id="formAnIdForEditorDiv(snippet)"
-                            :style="`width: 100%; height: ${editorHeight}px; border: 1px solid`"
-                        ></div>
+            <!-- top edit bar -->
+            <div class="mgb20">
+                <div class="flex">
+                    <el-input v-model="title" style="width: 30%"></el-input>
+                </div>
+                <!-- edit snippet bar -->
+                <div>
+                    <el-button @click="saveArticle">save</el-button>
+                    <el-button @click="addNewSnippet">+</el-button>
+                    <el-button @click="removeSnippet">-</el-button>
+                    <el-button @click="upOrDownASnippet('previous')">
+                        up
+                    </el-button>
+                    <el-button @click="upOrDownASnippet('next')">
+                        down
+                    </el-button>
+                </div>
+            </div>
+            <div v-if="debugui">{{ selectedSnippetId }}</div>
+            <!-- snippets -->
+            <div>
+                <!-- rows -->
+                <div
+                    :id="formAnIdForSnippetDiv(snippet)"
+                    @click="focusSnippet($event)"
+                    v-for="snippet in snippets"
+                    :key="snippet.id"
+                    class="mgb20"
+                >
+                    <div v-if="debugui">
+                        <div class="mgr20">id: {{ snippet.id }}</div>
+
+                        <div>order: {{ snippet.order }}</div>
                     </div>
 
-                    <!-- desc -->
-                    <div style="height: 100%" class="flexg1">
-                        <Tinymce
-                            :ref="formAnIdForRichTextEditor(snippet)"
-                            v-model="snippet.description"
-                            :height="`${richtextHeight}px`"
-                        />
+                    <!-- code edit bar -->
+                    <!-- containing a lang selection and run code button -->
+                    <div>
+                        <el-select
+                            size="small"
+                            v-model="snippet.lang"
+                            @change="handleOptionChange(snippet)"
+                        >
+                            <el-option value="java" label="java"></el-option>
+                            <el-option
+                                value="kotlin"
+                                label="kotlin"
+                            ></el-option>
+                            <el-option
+                                value="javascript"
+                                label="javascript"
+                            ></el-option>
+                            <el-option value="cpp" label="c/cpp"></el-option>
+                            <el-option value="html" label="html"></el-option>
+                        </el-select>
+
+                        <el-button size="small" @click="runCode">run</el-button>
+                    </div>
+
+                    <!-- coding area -->
+                    <!-- containing the code editor and rich text editor -->
+                    <div class="flex" :style="`height: ${snippetHeight}px;`">
+                        <!-- code -->
+                        <div style="height: 100%" class="flexg1">
+                            <!-- code editor -->
+                            <div
+                                :id="formAnIdForEditorDiv(snippet)"
+                                :style="`width: 100%; height: ${editorHeight}px; border: 1px solid`"
+                            ></div>
+                        </div>
+
+                        <!-- desc -->
+                        <div style="height: 100%" class="flexg1">
+                            <Tinymce
+                                :ref="formAnIdForRichTextEditor(snippet)"
+                                v-model="snippet.description"
+                                :height="`${richtextHeight}px`"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </page-content>
+        <page-footer></page-footer>
     </div>
 </template>
 
@@ -97,6 +108,10 @@
 import Vue from 'vue'
 import Tinymce from '@/components/Tinymce'
 import loader from '@monaco-editor/loader'
+import PageHeader from '@/views/common/page-header.vue'
+import PageContent from '@/views/common/page-content.vue'
+import PageFooter from '@/views/common/page-footer.vue'
+
 import {
     createSnippet,
     deleteSnippet,
@@ -106,7 +121,7 @@ import {
 } from '@/api/article'
 import { exchangeOrder, updateLanguageForSnippet } from '@/api/snippets'
 export default {
-    components: { Tinymce },
+    components: { Tinymce, PageContent, PageHeader, PageFooter },
     beforeRouteLeave(to, from, next) {
         document.removeEventListener('keydown', this.handleKeyDown)
         next()

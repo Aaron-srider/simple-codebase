@@ -1,53 +1,70 @@
 <template>
     <div>
-        <el-button @click="addSnippet">Add Snippet</el-button>
-        <search @search-hit="search"></search>
-        <el-pagination
-            background
-            layout="prev, pager, next"
-            :total="total"
-            :current-page="queryOptions.pageNo"
-            @current-change="pageChange"
-        ></el-pagination>
-        <el-table :data="articles" style="width: 100%">
-            <el-table-column
-                prop="title"
-                label="title"
-                width="180"
-            ></el-table-column>
+        <page-header :title="'CodeBase'"></page-header>
+        <page-content>
+            <tool-bar>
+                <el-button @click="addSnippet" type="primary" class="mgr20">
+                    <i class="el-icon-plus"></i>
+                </el-button>
+                <search @search-hit="search" class="mgr20"></search>
+                <el-pagination
+                    background
+                    layout="prev, pager, next"
+                    :total="total"
+                    :current-page="queryOptions.pageNo"
+                    @current-change="pageChange"
+                ></el-pagination>
+            </tool-bar>
 
-            <el-table-column
-                prop="createTime"
-                label="createTime"
-                width="180"
-            ></el-table-column>
+            <el-table :data="articles" style="width: 100%">
+                <el-table-column
+                    prop="title"
+                    label="title"
+                    width="360"
+                ></el-table-column>
 
-            <el-table-column
-                prop="updateTime"
-                label="updateTime"
-                width="180"
-            ></el-table-column>
-            <el-table-column prop="undefined" label="operateion" width="180">
-                <template #default="scope">
-                    <el-button
-                        class="el-icon-info"
-                        @click="info(scope.row)"
-                    ></el-button>
-                    <el-button
-                        class="el-icon-delete"
-                        @click="remove(scope.row)"
-                    ></el-button>
-                </template>
-            </el-table-column>
-        </el-table>
+                <el-table-column
+                    prop="createTime"
+                    label="createTime"
+                    width="180"
+                ></el-table-column>
+
+                <el-table-column
+                    prop="updateTime"
+                    label="updateTime"
+                    width="180"
+                ></el-table-column>
+                <el-table-column prop="undefined" label="operateion" width="">
+                    <template #default="scope">
+                        <el-button
+                            class="el-icon-info"
+                            @click="info(scope.row)"
+                        ></el-button>
+                        <el-button
+                            class="el-icon-delete"
+                            @click="remove(scope.row)"
+                        ></el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </page-content>
+        <page-footer></page-footer>
     </div>
 </template>
 <script>
+import PageHeader from '@/views/common/page-header.vue'
+import PageContent from '@/views/common/page-content.vue'
+import PageFooter from '@/views/common/page-footer.vue'
+import ToolBar from '@/views/common/tool-bar.vue'
 import { createArticle, deleteArticle, listArticles } from '@/api/article'
 import Search from '@/views/codebase/comps/search.vue'
 export default {
     components: {
         Search,
+        PageContent,
+        PageHeader,
+        PageFooter,
+        ToolBar,
     },
     data() {
         return {

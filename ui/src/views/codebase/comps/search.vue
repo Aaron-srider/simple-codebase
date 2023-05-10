@@ -1,15 +1,11 @@
 <!--  -->
 <template>
     <div class="flex">
-        <el-input v-model="title" placeholder="title"></el-input>
-        <el-select v-model="lang">
-            <el-option value="" label="All"></el-option>
-            <el-option value="javascript" label="javascript">
-                javascript
-            </el-option>
-            <el-option value="java" label="java">java</el-option>
-            <el-option value="kotlin" label="kotlin">kotlin</el-option>
-        </el-select>
+        <el-input
+            v-model="title"
+            placeholder="title"
+            @input="handleKeydown"
+        ></el-input>
         <el-button @click="search">search</el-button>
     </div>
 </template>
@@ -18,7 +14,12 @@
 export default {
     components: {},
     data() {
-        return { title: '', lang: '' }
+        return {
+            title: '',
+            lang: '',
+            delay: 100, // Delay in milliseconds
+            timeoutId: null,
+        }
     },
     computed: {},
     watch: {
@@ -34,15 +35,19 @@ export default {
     created() {
         this.populateQueryParam(this.$route)
     },
-    mounted() {},
-    beforeCreate() {},
-    beforeMount() {},
-    beforeUpdate() {},
-    updated() {},
-    beforeDestroy() {},
-    destroyed() {},
-    activated() {},
     methods: {
+        handleKeydown() {
+            debugger
+            // Clear the previous timeout (if any)
+            clearTimeout(this.timeoutId)
+
+            // Set a new timeout
+            this.timeoutId = setTimeout(() => {
+                // Perform some action here
+                console.log(`User typed: ${this.title}`)
+                this.search()
+            }, this.delay)
+        },
         populateQueryParam(route) {
             var query = route.query
             var title = query.title
