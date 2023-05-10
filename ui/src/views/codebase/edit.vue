@@ -1,5 +1,11 @@
 <template>
     <div class="">
+        <el-button @click="test_add">addline</el-button>
+        <!-- code editor -->
+        <div
+            :id="'test-monaco-editor'"
+            :style="`width: 100%; height: ${testheight}px; border: 1px solid`"
+        ></div>
         <page-header :title="'Edit'"></page-header>
         <page-content>
             <el-button @click="toggleDebugUI()">debugui</el-button>
@@ -135,6 +141,8 @@ export default {
     },
     data() {
         return {
+            testheight: 19 * 10,
+            testmonacoeditor: undefined,
             debugui: false,
             snippetHeight: 250,
             editorHeight: 0,
@@ -156,18 +164,31 @@ export default {
     },
     computed: {},
     watch: {},
-
     updated() {},
-    async created() {},
+    created() {},
     mounted() {
         this.calculateEditorHeight()
         loader.init().then((monaco) => {
             this.monaco = monaco
+            this.testmonacoeditor = this.monaco.editor.create(
+                document.getElementById('test-monaco-editor'),
+                {
+                    value: "console.log('hello')",
+                    language: 'javascript',
+                    automaticLayout: true,
+                },
+            )
+            console.log(this.testmonacoeditor.getOptions())
+            this.testmonacoeditor.layout({ height: 19 * 3 })
             this.init()
         })
     },
 
     methods: {
+        test_add() {
+            this.testheight += 19
+            this.testmonacoeditor.layout({ height: this.testheight + 19 })
+        },
         test() {
             // var ecm = this.getARichTextById(
             //     this.formAnIdForRichTextEditor({ id: 50 }),
