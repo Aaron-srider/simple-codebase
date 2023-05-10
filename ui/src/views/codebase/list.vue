@@ -6,6 +6,7 @@
             background
             layout="prev, pager, next"
             :total="total"
+            :current-page="queryOptions.pageNo"
             @current-change="pageChange"
         ></el-pagination>
         <el-table :data="articles" style="width: 100%">
@@ -76,14 +77,78 @@ export default {
             total: 0,
         }
     },
+    watch: {
+        /**
+         * handle changes when re-entering the page, mainly to obtain new paths
+         */
+        $route: {
+            handler(new_route) {
+                this.populateQueryParam(new_route)
+                this.fetchListAccordingToQueryOptions()
+            },
+        },
+    },
+
     created() {
-        listArticles().then((resp) => {
-            this.articles = resp.data.records
-            this.total = resp.data.total
-        })
+        this.populateQueryParam(this.$route)
+        this.fetchListAccordingToQueryOptions()
     },
     methods: {
-       
+        fetchListAccordingToQueryOptions() {
+            listArticles({
+                pageNo: this.queryOptions.pageNo,
+                pageSize: this.queryOptions.pageSize,
+                title: this.queryOptions.title,
+            }).then((resp) => {
+                this.articles = resp.data.records
+                this.total = resp.data.total
+            })
+        },
+        rerenderQueryParamAndReenterThePage() {
+            let query = this.concatQuerys()
+            this.$router.push(`/codebase${query}`)
+        },
+        populateQueryParam(route) {
+            var query = route.query
+            var title = query.title
+            if (title != undefined) {
+                this.queryOptions.title = title
+            }
+            var pageNo = query.pageNo
+            if (pageNo != undefined) {
+                this.queryOptions.pageNo = pageNo
+            }
+
+            var pageSize = query.pageSize
+
+            if (pageSize != undefined) {
+                this.queryOptions.pageSize = pageSize
+            }
+        },
+        concatQuerys() {
+            var arr = []
+            var title = this.queryOptions.title
+            if (title != undefined) {
+                arr.push(`title=${title}`)
+            }
+            var pageNo = this.queryOptions.pageNo
+            if (pageNo != undefined) {
+                arr.push(`pageNo=${pageNo}`)
+            }
+
+            var pageSize = this.queryOptions.pageSize
+
+            if (pageSize != undefined) {
+                arr.push(`pageSize=${pageSize}`)
+            }
+
+            if (arr.length != 0) {
+                let querys = `?${arr.join('&')}`
+                return querys
+            }
+
+            return ''
+        },
         addSnippet() {
             createArticle({ title: 'Untitled' }).then((resp) => {
                 var articlehandle = resp.data
@@ -101,19 +166,13 @@ export default {
             this.pageNo = newPageno
             this.queryOptions.pageNo = newPageno
             this.queryOptions.pageSize = this.pageSize
-            listArticles(this.queryOptions).then((resp) => {
-                this.articles = resp.data.records
-                this.total = resp.data.total
-            })
+            this.rerenderQueryParamAndReenterThePage()
         },
         search(data) {
             this.queryOptions = data
             this.queryOptions.pageNo = 1
             this.queryOptions.pageSize = this.pageSize
-            listArticles(this.queryOptions).then((resp) => {
-                this.articles = resp.data.records
-                this.total = resp.data.total
-            })
+            this.rerenderQueryParamAndReenterThePage()
         },
         info(article) {
             this.$router.push({

@@ -21,8 +21,19 @@ export default {
         return { title: '', lang: '' }
     },
     computed: {},
-    watch: {},
-    created() {},
+    watch: {
+        /**
+         * handle changes when re-entering the page, mainly to obtain new paths
+         */
+        $route: {
+            handler(new_route) {
+                this.populateQueryParam(new_route)
+            },
+        },
+    },
+    created() {
+        this.populateQueryParam(this.$route)
+    },
     mounted() {},
     beforeCreate() {},
     beforeMount() {},
@@ -32,6 +43,13 @@ export default {
     destroyed() {},
     activated() {},
     methods: {
+        populateQueryParam(route) {
+            var query = route.query
+            var title = query.title
+            if (title != undefined) {
+                this.title = title
+            }
+        },
         search() {
             if (this.title === '') {
                 this.title = undefined
