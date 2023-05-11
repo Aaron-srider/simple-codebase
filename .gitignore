@@ -1,4 +1,4 @@
-!**/src/**/resources/static/
+**/static/
 
 HELP.md
 target/
