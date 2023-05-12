@@ -35,81 +35,32 @@ import Layout from '@/layout'
  * all roles can be accessed
  */
 export const constantRoutes = [
+    {
+        path: '/',
+        component: Layout,
+        redirect: '/codebase',
+    },
 
     {
         path: '/codebase',
         component: Layout,
+        meta: { title: 'codebase', icon: 'el-icon-notebook-1' },
         children: [
             {
                 path: '',
                 component: () => import('@/views/codebase/list.vue'),
                 name: 'codebase',
-                meta: { title: 'codebase' }
+                meta: { title: 'codebase' },
             },
-
             {
                 path: 'edit',
                 component: () => import('@/views/codebase/edit.vue'),
                 name: 'edit',
                 meta: { title: 'edit', activeMenu: '/codebase' },
-                hidden: true
-            }
-        ]
+                hidden: true,
+            },
+        ],
     },
-
-    {
-        path: '/filelist',
-        component: Layout,
-        children: [
-            {
-                path: '',
-                component: () => import('@/views/filelist/list.vue'),
-                name: 'FileList',
-                meta: { title: 'FileList' }
-            }
-        ]
-    },
-
-    {
-        path: '/test',
-        component: Layout,
-        children: [
-            {
-                path: '',
-                component: () => import('@/views/test.vue'),
-                name: 'FileList',
-                meta: { title: 'FileList' }
-            }
-        ]
-    },
-
-    {
-        path: '/config',
-        component: Layout,
-        children: [
-            {
-                path: '',
-                component: () => import('@/views/config/general.vue'),
-                name: 'Config',
-                meta: { title: 'Config', affix: true }
-            }
-        ]
-    },
-
-    {
-        path: '/',
-        component: Layout,
-        redirect: '/codebase',
-        children: [
-            {
-                path: 'dashboard',
-                component: () => import('@/views/filelist/list.vue'),
-                name: 'Dashboard',
-                meta: { title: 'Dashboard', icon: 'dashboard', affix: true }
-            }
-        ]
-    },
-
 ]
 
 /**
@@ -117,16 +68,16 @@ export const constantRoutes = [
  * the routes that need to be dynamically loaded based on user roles
  */
 export const asyncRoutes = [
-
     // 404 page must be placed at the end !!!
-    { path: '*', redirect: '/404', hidden: true }
+    { path: '*', redirect: '/404', hidden: true },
 ]
 
-const createRouter = () => new Router({
-    mode: 'history', // require service support
-    scrollBehavior: () => ({ y: 0 }),
-    routes: constantRoutes
-})
+const createRouter = () =>
+    new Router({
+        mode: 'history', // require service support
+        scrollBehavior: () => ({ y: 0 }),
+        routes: constantRoutes,
+    })
 
 const router = createRouter()
 

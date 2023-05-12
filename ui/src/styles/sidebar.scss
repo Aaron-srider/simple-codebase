@@ -1,22 +1,21 @@
+@import '~@/styles/common-style.scss';
 #app {
 
   .main-container {
+    flex: 1;
     min-height: 100%;
     transition: margin-left .28s;
-    margin-left: $sideBarWidth;
+    // margin-left: $sideBarWidth;
     position: relative;
   }
 
   .sidebar-container {
+    border-right: 1px solid $google-gray-300;
     transition: width 0.28s;
     width: $sideBarWidth !important;
     background-color: $menuBg;
     height: 100%;
-    position: fixed;
     font-size: 0px;
-    top: 0;
-    bottom: 0;
-    left: 0;
     z-index: 1001;
     overflow: hidden;
 
@@ -68,13 +67,6 @@
       width: 100% !important;
     }
 
-    // menu hover
-    .submenu-title-noDropdown,
-    .el-submenu__title {
-      &:hover {
-        background-color: $menuHover !important;
-      }
-    }
 
     .is-active>.el-submenu__title {
       color: $subMenuActiveText !important;

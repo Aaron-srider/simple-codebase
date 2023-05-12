@@ -8,7 +8,6 @@
                 </el-button>
                 <search @search-hit="search" class="mgr20"></search>
                 <el-pagination
-                    background
                     layout="prev, pager, next"
                     :total="total"
                     :current-page="queryOptions.pageNo"

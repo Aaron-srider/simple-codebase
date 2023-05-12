@@ -1,14 +1,14 @@
 <template>
     <div class="">
-        <el-button @click="test_add">addline</el-button>
+        <!-- <el-button @click="test_add">addline</el-button> -->
         <!-- code editor -->
-        <div
+        <!-- <div
             :id="'test-monaco-editor'"
             :style="`width: 100%; height: ${testheight}px; border: 1px solid`"
-        ></div>
+        ></div> -->
         <page-header :title="'Edit'"></page-header>
         <page-content>
-            <el-button @click="toggleDebugUI()">debugui</el-button>
+            <!-- <el-button @click="toggleDebugUI()">debugui</el-button> -->
             <div class="flex mgb20 mgt20">
                 <div class="flex flex-center">
                     <a
@@ -170,16 +170,16 @@ export default {
         this.calculateEditorHeight()
         loader.init().then((monaco) => {
             this.monaco = monaco
-            this.testmonacoeditor = this.monaco.editor.create(
-                document.getElementById('test-monaco-editor'),
-                {
-                    value: "console.log('hello')",
-                    language: 'javascript',
-                    automaticLayout: true,
-                },
-            )
-            console.log(this.testmonacoeditor.getOptions())
-            this.testmonacoeditor.layout({ height: 19 * 3 })
+            // this.testmonacoeditor = this.monaco.editor.create(
+            //     document.getElementById('test-monaco-editor'),
+            //     {
+            //         value: "console.log('hello')",
+            //         language: 'javascript',
+            //         automaticLayout: true,
+            //     },
+            // )
+            // console.log(this.testmonacoeditor.getOptions())
+            // this.testmonacoeditor.layout({ height: 19 * 3 })
             this.init()
         })
     },
