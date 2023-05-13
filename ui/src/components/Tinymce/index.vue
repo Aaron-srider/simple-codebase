@@ -129,6 +129,8 @@ export default {
                     this.$message.error(err.message)
                     return
                 }
+                debugger
+                this.$emit("inited")
                 this.initTinymce()
             })
         },
@@ -207,6 +209,7 @@ export default {
                 //   });
                 // },
             })
+
             console.log(`load mce ${this.tinymceId}`)
         },
         reload() {

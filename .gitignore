@@ -1,5 +1,9 @@
 **/static/
 
+**/mvnw*
+**/.mvn
+**/.idea
+
 HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
