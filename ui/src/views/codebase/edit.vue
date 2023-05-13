@@ -1,11 +1,5 @@
 <template>
     <div class="">
-        <!-- <el-button @click="test_add">addline</el-button> -->
-        <!-- code editor -->
-        <!-- <div
-            :id="'test-monaco-editor'"
-            :style="`width: 100%; height: ${testheight}px; border: 1px solid`"
-        ></div> -->
         <page-header :title="'Edit'"></page-header>
         <page-content>
             <!-- <el-button @click="toggleDebugUI()">debugui</el-button> -->
@@ -25,19 +19,51 @@
 
             <!-- top edit bar -->
             <div class="mgb20">
+                title
                 <div class="flex">
-                    <el-input v-model="title" style="width: 30%"></el-input>
+                    <el-input
+                        class="flexg1"
+                        v-model="title"
+                        style="width: 30%"
+                    ></el-input>
+                    <el-button
+                        class="mgl20"
+                        size="mini"
+                        type="primary"
+                        @click="saveArticle"
+                    >
+                        save
+                    </el-button>
                 </div>
                 <!-- edit snippet bar -->
                 <div>
-                    <el-button @click="saveArticle">save</el-button>
-                    <el-button @click="addNewSnippet">+</el-button>
-                    <el-button @click="removeSnippet">-</el-button>
-                    <el-button @click="upOrDownASnippet('previous')">
-                        up
+                    <el-button
+                        size="mini"
+                        style="border-radius: 0px; margin: 0"
+                        @click="addNewSnippet"
+                    >
+                        <i class="el-icon-plus"></i>
                     </el-button>
-                    <el-button @click="upOrDownASnippet('next')">
-                        down
+                    <el-button
+                        size="mini"
+                        style="border-radius: 0px; margin: 0"
+                        @click="removeSnippet"
+                    >
+                        <i class="el-icon-delete"></i>
+                    </el-button>
+                    <el-button
+                        size="mini"
+                        style="border-radius: 0px; margin: 0"
+                        @click="upOrDownASnippet('previous')"
+                    >
+                        <i class="el-icon-top"></i>
+                    </el-button>
+                    <el-button
+                        size="mini"
+                        style="border-radius: 0px; margin: 0"
+                        @click="upOrDownASnippet('next')"
+                    >
+                        <i class="el-icon-bottom"></i>
                     </el-button>
                 </div>
             </div>
@@ -90,7 +116,7 @@
                             <!-- code editor -->
                             <div
                                 :id="formAnIdForEditorDiv(snippet)"
-                                :style="`width: 100%; height: ${editorHeight}px; border: 1px solid`"
+                                :style="`width: 100%; height: ${editorHeight}px; border: 1px solid #ced4da`"
                             ></div>
                         </div>
 
@@ -170,25 +196,11 @@ export default {
         this.calculateEditorHeight()
         loader.init().then((monaco) => {
             this.monaco = monaco
-            // this.testmonacoeditor = this.monaco.editor.create(
-            //     document.getElementById('test-monaco-editor'),
-            //     {
-            //         value: "console.log('hello')",
-            //         language: 'javascript',
-            //         automaticLayout: true,
-            //     },
-            // )
-            // console.log(this.testmonacoeditor.getOptions())
-            // this.testmonacoeditor.layout({ height: 19 * 3 })
             this.init()
         })
     },
 
     methods: {
-        test_add() {
-            this.testheight += 19
-            this.testmonacoeditor.layout({ height: this.testheight + 19 })
-        },
         test() {
             // var ecm = this.getARichTextById(
             //     this.formAnIdForRichTextEditor({ id: 50 }),
@@ -591,7 +603,7 @@ export default {
             if (event.ctrlKey && event.key === 's') {
                 event.preventDefault()
                 console.log('Ctrl + S pressed!')
-                this.saveCode()
+                this.saveArticle()
                 // Do something else here, such as saving data or triggering an action
             }
         },
