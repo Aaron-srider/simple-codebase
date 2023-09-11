@@ -213,7 +213,6 @@ export default {
     methods: {
 
         handleRichtextInited() {
-            debugger
             this.tinyMceCompnentLoading = false
         },
         test() {
@@ -572,6 +571,12 @@ export default {
         },
 
         addNewSnippet() {
+            // everytime a new snippet is added to the view, a new TinyMCE component will be rendered to the view(created),
+            // so the page should be loading before the component is created,
+            // this variable will be set to false in the callback of the component's inited hook
+            // and the page will be prepared to use(loading over)
+            this.tinyMceCompnentLoading = true
+
             // find order of current focused snippet
             var snippets = this.snippets
             var selectedOrder = -1
@@ -665,7 +670,12 @@ export default {
                             this.focusSnippetBySnippetId(this.snippets[0].id)
                         })
                     }
+
                     this.dataLoading = false
+
+                    if (this.snippets.length <= 0) {
+                        this.tinyMceCompnentLoading = false
+                    }
                 })
         },
         updateLanguageForSnippet(snippetId, lang) {
