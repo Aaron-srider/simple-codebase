@@ -9,6 +9,7 @@ import fit.wenchao.simplecodebase.dao.repo.base.pagination.Page
 interface ArticleService {
     fun createArticle(createArticleRequest: CreateArticleRequest): Long
     fun listArticles(queryArticle: QueryArticle):  Page<ArticlePO>
+    fun listArticles(pageSize: Int, pageNo: Int, keyWord: String?): Page<ArticlePO>
     fun deleteArticle(articleId: Long)
     fun updateArticle(articleId: Long, updateArticleRequest: UpdateArticleRequest)
     fun getArticle(articleId: Long): ArticlePO

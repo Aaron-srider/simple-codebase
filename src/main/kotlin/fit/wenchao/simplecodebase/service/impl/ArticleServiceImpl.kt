@@ -1,5 +1,6 @@
 package fit.wenchao.simplecodebase.service.impl
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
 import fit.wenchao.simplecodebase.dao.po.*
 import fit.wenchao.simplecodebase.dao.repo.ArticleDao
 import fit.wenchao.simplecodebase.dao.repo.SnippetsDao
@@ -12,6 +13,9 @@ import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.stream.Collectors
+import java.util.stream.Stream
+import kotlin.streams.toList
 
 @Service
 class ArticleServiceImpl : ArticleService {
@@ -65,6 +69,51 @@ class ArticleServiceImpl : ArticleService {
 
     override fun listArticles(queryArticle: QueryArticle): Page<ArticlePO> {
         return articleDao.pageData(queryArticle, null)
+    }
+
+    override fun listArticles(pageSize: Int, pageNo: Int, keyWord: String?): Page<ArticlePO> {
+        keyWord?.let {
+            // search title
+            var titleResult = articleDao.list(QueryWrapper<ArticlePO>().like("title", keyWord))
+            var codeContentResult = snippetsDao.list(QueryWrapper<SnippetsPO>().like("code_content", keyWord))
+            var descResult = snippetsDao.list(QueryWrapper<SnippetsPO>().like("description", keyWord))
+
+            var contentResultStream = Stream.concat(descResult.stream(), codeContentResult.stream())
+                .filter { it.articleId != null }
+                .collect(
+                    Collectors.toMap(
+                        { key -> key.id.toString() + key.articleId.toString() },
+                        { value -> value },
+                        { existing, replacement -> existing })
+                )
+                .values
+                .stream()
+                .map { it.articleId!! }
+                .map { articleDao.getById(it) }
+                .filter { it != null }
+
+            val restults = Stream.concat(titleResult.stream(), contentResultStream)
+                .collect(Collectors.toMap({ key -> key.id }, { value -> value }, { existing, replacement -> existing }))
+                .values
+                .stream().toList()
+
+            var page = Page<ArticlePO>()
+            page.pageNo = pageNo.toLong()
+            page.pageSize = pageSize.toLong()
+            page.total = restults.size.toLong()
+
+            page.records = restults.stream()
+                .sorted { o1, o2 -> o1.updateTime?.compareTo(o2.updateTime ?: "") ?: 0 }
+                .skip((pageNo - 1) * pageSize.toLong())
+                .limit(pageSize.toLong())
+                .toList()
+            return page
+        } ?: run {
+            return articleDao.pageData(QueryArticle().apply {
+                this.pageSize = pageSize.toLong()
+                this.pageNo = pageNo.toLong()
+            }, null)
+        }
     }
 
     override fun updateArticle(articleId: Long, updateArticleRequest: UpdateArticleRequest) {

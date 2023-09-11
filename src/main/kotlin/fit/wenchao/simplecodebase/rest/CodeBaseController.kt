@@ -39,8 +39,10 @@ class QueryArticle {
     @PageNo
     var pageNo: Long? = null
 
-    @Condition(dbFieldName = "title", con = BaseDao.ConditionEnum.LIKE)
+    // @Condition(dbFieldName = "title", con = BaseDao.ConditionEnum.LIKE)
     var title: String? = null
+
+    var keyword: String? = null
 }
 
 class UpdateArticleRequest {
@@ -73,10 +75,13 @@ class CreateSnippetRequest {
 class UpdateSnippetRequest {
     @NotNull
     var id: Long? = null
+
     @NotNull
     var content: String? = null
+
     @NotNull
     var lang: String? = null
+
     @NotNull
     var description: String? = null
 }
@@ -99,7 +104,7 @@ data class SnippetVO(
     var content: String? = null,
     var order: Int? = null,
     var lang: String? = null,
-    var description: String? = null
+    var description: String? = null,
 )
 
 
@@ -141,7 +146,11 @@ class CodeBaseController {
     // List articles
     @GetMapping("/articles")
     fun listArticles(queryArticle: QueryArticle): Any {
-        val page: Page<ArticlePO> = articleService.listArticles(queryArticle)
+        val page: Page<ArticlePO> = articleService.listArticles(
+            queryArticle.pageSize?.toInt() ?: 10,
+            queryArticle.pageNo?.toInt() ?: 1,
+            queryArticle.title
+        )
         return JsonResult.ok(object {
             var records = page.records
             var total = page.total
@@ -180,16 +189,15 @@ class CodeBaseController {
 
 data class InsertSnippetResponse(
     var newSnippetHandle: Long? = null,
-    var orderMap: Map<Long, Int>? = null
+    var orderMap: Map<Long, Int>? = null,
 ) {
     constructor() : this(null, null)
 }
 
 
-
 data class DeleteSnippetResponse(
     var deletedSnippetHandle: Long? = null,
-    var orderMap: Map<Long, Int>? = null
-){
+    var orderMap: Map<Long, Int>? = null,
+) {
     constructor() : this(null, null)
 }
