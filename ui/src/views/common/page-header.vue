@@ -11,15 +11,11 @@
     </div>
 </template>
 
-<script>
-export default {
-    props: {
-        title: {
-            type: String,
-            default: '',
-        },
-    },
-};
+<script lang="ts">
+import { Component, Prop, Vue } from 'vue-property-decorator';
+@Component({})
+export default class PageFooterComponent extends Vue {
+    @Prop({ type: String, default: '' })
+    private readonly title!: string;
+}
 </script>
-
-<style></style>

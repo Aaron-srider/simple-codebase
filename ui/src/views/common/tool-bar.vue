@@ -5,11 +5,12 @@
         </div>
     </div>
 </template>
-
-<script>
-export default {};
+<script lang="ts">
+import { Component, Vue } from 'vue-property-decorator';
+@Component({})
+export default class ToolBarView extends Vue {}
 </script>
 
 <style lang="scss">
-@import '~@/styles/common-style.scss';
+@import '~@/style/common-style.scss';
 </style>
