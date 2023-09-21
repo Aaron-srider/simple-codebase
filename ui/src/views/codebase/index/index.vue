@@ -59,6 +59,7 @@ import ToolBar from '@/views/common/tool-bar.vue';
 import Search from '@/views/codebase/comps/search.vue';
 import { Component, Vue, Watch } from 'vue-property-decorator';
 import Client from '@/request/client';
+
 @Component({
     components: {
         Search,
@@ -101,10 +102,33 @@ export default class IndexView extends Vue {
         this.fetchListAccordingToQueryOptions();
     }
 
+    mounted() {
+        // Add the event listener to the document when the component is mounted
+        document.addEventListener('keydown', this.handleKeyDown);
+    }
+
+    handleKeyDown(event) {
+        // Check if 'Ctrl' (or 'Cmd' for Mac) and 'K' are pressed together
+        if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+            event.preventDefault();
+
+            let searchInput = document.getElementById(
+                'searchInput',
+            ) as HTMLElement;
+            searchInput.focus();
+        }
+    }
+
+    beforeDestroy() {
+        // Remove the event listener from the document before the component is destroyed
+        document.removeEventListener('keydown', this.handleKeyDown);
+    }
+
     created() {
         this.populateQueryParam(this.$route);
         this.fetchListAccordingToQueryOptions();
     }
+
     fetchListAccordingToQueryOptions() {
         Client.listArticles({
             pageNo: this.queryOptions.pageNo,
@@ -115,10 +139,12 @@ export default class IndexView extends Vue {
             this.total = resp.data.total;
         });
     }
+
     rerenderQueryParamAndReenterThePage() {
         let query = this.concatQuerys();
         this.$router.push(`/index${query}`);
     }
+
     populateQueryParam(route) {
         var query = route.query;
         var title = query.title;
@@ -136,6 +162,7 @@ export default class IndexView extends Vue {
             this.queryOptions.pageSize = pageSize;
         }
     }
+
     concatQuerys() {
         var arr: any[] = [];
         var title = this.queryOptions.title;
@@ -160,6 +187,7 @@ export default class IndexView extends Vue {
 
         return '';
     }
+
     addSnippet() {
         Client.createArticle({ title: 'Untitled' }).then((resp) => {
             var articlehandle = resp.data;
@@ -174,24 +202,28 @@ export default class IndexView extends Vue {
             });
         });
     }
+
     pageChange(newPageno) {
         this.pageNo = newPageno;
         this.queryOptions.pageNo = newPageno;
         this.queryOptions.pageSize = this.pageSize;
         this.rerenderQueryParamAndReenterThePage();
     }
+
     search(data) {
         this.queryOptions = data;
         this.queryOptions.pageNo = 1;
         this.queryOptions.pageSize = this.pageSize;
         this.rerenderQueryParamAndReenterThePage();
     }
+
     info(article) {
         this.$router.push({
             path: '/index/edit',
             query: { articleId: article.id, mode: 'edit' },
         });
     }
+
     // delete article
     remove(article) {
         this.$confirm('Are you sure to delete this article?', 'Warning', {

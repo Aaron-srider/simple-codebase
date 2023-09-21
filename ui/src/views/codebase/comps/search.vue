@@ -2,6 +2,7 @@
 <template>
     <div class="flex">
         <el-input
+            id="searchInput"
             v-model="title"
             placeholder="title"
             @input="handleKeydown"
